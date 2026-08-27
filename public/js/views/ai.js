@@ -166,8 +166,7 @@ const AIView = {
     const chips = ui.el('div', { class: 'filter-bar' });
     const makeChip = (cat) =>
       ui.el('button', {
-        class: 'chip' + (this.state.category === cat ? ' on' : ''),
-        style: 'border:none;cursor:pointer;background:' + (this.state.category === cat ? 'var(--primary)' : ''),
+        class: 'chip cat' + (this.state.category === cat ? ' on' : ''),
         text: cat,
         onclick: () => { this.state.category = this.state.category === cat ? 'all' : cat; this.refresh(container); },
       });
@@ -238,21 +237,19 @@ const AIView = {
     const category = ui.el('select', {}, this.CATEGORIES.map((c) => ui.el('option', { value: c, text: c })));
     category.value = p ? (p.category || this.CATEGORIES[0]) : this.CATEGORIES[0];
     const title = ui.el('input', { type: 'text', value: p ? (p.title || '') : '', placeholder: '模板名称，如：周报总结助手' });
-    const content = ui.el('textarea', { rows: 6, placeholder: '把完整的提示词写在这里' }, [p ? (p.content || '') : '']);
     const scene = ui.el('input', { type: 'text', value: p ? (p.scene || '') : '', placeholder: '什么时候用（可选）' });
     const effect = ui.el('input', { type: 'text', value: p ? (p.effect || '') : '', placeholder: '效果怎么样（可选）' });
+    const content = ui.el('textarea', { rows: 6, style: 'min-height:140px;resize:vertical', placeholder: '把完整的提示词写在这里（可拖拽调整大小）' }, [p ? (p.content || '') : '']);
 
     const root = document.getElementById('modal-root');
     const overlay = ui.el('div', { class: 'modal-overlay' });
     const box = ui.el('div', { class: 'modal form-modal' }, [
       ui.el('div', { class: 'modal-title', text: p ? '编辑模板' : '新增模板' }),
-      ui.el('div', { class: 'field-row' }, [
-        ui.el('label', { class: 'field' }, [ui.el('span', { text: '分类' }), category]),
-        ui.el('label', { class: 'field' }, [ui.el('span', { text: '标题' }), title]),
-      ]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '提示词内容' }), content]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '适用场景' }), scene]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '效果备注' }), effect]),
+      ui.formRow('分类', category),
+      ui.formRow('标题', title),
+      ui.formRow('适用场景', scene),
+      ui.formRow('效果', effect),
+      ui.formRow('提示词内容', content),
       ui.el('div', { class: 'modal-actions' }, [
         ui.el('button', { class: 'btn', text: '取消', onclick: () => overlay.remove() }),
         ui.el('button', {
