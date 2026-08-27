@@ -86,6 +86,19 @@ test('删除每日必吃：只从模板删除，本周安排保留', async () =>
   assert.strictEqual(countAfter, todayCount, '删除模板项不应影响本周已生成的安排');
 });
 
+test('本周执行卡片顶部对齐（周一不高于其他天）', async () => {
+  const infos = await page.$$eval('.dw-card', (ns) => ns.map((n) => ({
+    top: n.getBoundingClientRect().top,
+    marginTop: getComputedStyle(n).marginTop,
+  })));
+  assert.ok(infos.length === 7, '应有 7 张卡片');
+  for (const i of infos) {
+    assert.strictEqual(i.marginTop, '0px', '卡片不应有错位边距');
+  }
+  // 同一行（前两张）顶部应一致
+  assert.strictEqual(infos[0].top, infos[1].top, '周一与周二顶部应对齐');
+});
+
 test('本周执行没有复制/粘贴功能', async () => {
   const hasCopy = await page.$('.dw-card .dw-ops button:has-text("复制")');
   const hasPaste = await page.$('.dw-card .dw-ops button:has-text("粘贴")');
