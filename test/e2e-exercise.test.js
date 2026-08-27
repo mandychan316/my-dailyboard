@@ -41,6 +41,19 @@ test('设置每周计划：内容与时长保存到数据文件', async () => {
   });
 });
 
+test('本周打卡位于每周计划下方', async () => {
+  const pos = await page.$$eval('.page .card', (ns) => {
+    const plan = ns.find((n) => n.querySelector('.week-row'));
+    const checkin = ns.find((n) => n.textContent.includes('本周打卡'));
+    return {
+      planTop: plan ? plan.getBoundingClientRect().top : -1,
+      checkinTop: checkin ? checkin.getBoundingClientRect().top : -1,
+    };
+  });
+  assert.ok(pos.planTop >= 0 && pos.checkinTop >= 0, '应能找到两张卡片');
+  assert.ok(pos.checkinTop > pos.planTop, '本周打卡应在每周计划下方');
+});
+
 test('今日打卡：统计变为 1/2，可取消', async () => {
   await waitFor(() => page.$('.checkin-row.today .btn'));
   let stats = await page.textContent('.progress-text');

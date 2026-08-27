@@ -22,10 +22,8 @@ const ExerciseView = {
       ui.el('h1', { class: 'page-title', text: '运动计划' }),
       ui.el('div', { class: 'page-sub', text: '以瑜伽和拉伸为主，先定计划，再一天天打卡' }),
     ]));
-    const split = ui.el('div', { class: 'split' });
-    split.appendChild(this.planCard());
-    split.appendChild(this.checkinCard());
-    container.appendChild(split);
+    container.appendChild(this.planCard());
+    container.appendChild(this.checkinCard());
   },
 
   stats() {
