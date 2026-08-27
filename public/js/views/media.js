@@ -212,26 +212,26 @@ const MediaView = {
 
   postCard(data, post, container) {
     const status = this.STATUSES.find((s) => s.key === post.status) || this.STATUSES[0];
-    const card = ui.el('div', { class: 'item-card' }, [
-      ui.el('div', { class: 'ic-top' }, [
-        ui.el('div', { style: 'flex:1;min-width:0' }, [
-          ui.el('span', { class: 'chip', text: post.platform }),
-          ui.el('div', { class: 'ic-title', style: 'margin-top:6px', text: post.title }),
-        ]),
-        ui.el('div', { class: 'ic-actions' }, [
-          status.next ? ui.el('button', { class: 'btn btn-sm', text: '推进 → ' + this.STATUS_LABEL[status.next], onclick: () => this.advance(data, post, container) }) : null,
-          status.key !== 'idea' ? ui.el('button', { class: 'btn btn-ghost btn-sm', title: '回退一步', html: ui.icon('back'), onclick: () => this.regress(data, post, container) }) : null,
-          ui.el('button', { class: 'btn btn-ghost btn-sm', html: ui.icon('edit'), title: '编辑', onclick: () => this.postForm(container, post) }),
-          ui.el('button', { class: 'btn btn-ghost btn-sm', html: ui.icon('trash'), title: '删除', onclick: () => this.deletePost(data, post, container) }),
-        ]),
+    // 第一层：平台 / 状态 / 发布日期
+    const meta = [ui.el('span', { class: 'chip', text: post.platform })];
+    meta.push(ui.el('span', { class: 'status ' + status.color, text: status.label }));
+    if (post.publishDate) meta.push(ui.el('span', { class: 'chip plain', text: '发布于 ' + post.publishDate }));
+    const first = ui.el('div', { class: 'ic-top' }, [
+      ui.el('div', { class: 'ic-meta' }, meta),
+      ui.el('div', { class: 'ic-actions' }, [
+        status.next ? ui.el('button', { class: 'btn btn-sm', text: '推进 → ' + this.STATUS_LABEL[status.next], onclick: () => this.advance(data, post, container) }) : null,
+        status.key !== 'idea' ? ui.el('button', { class: 'btn btn-ghost btn-sm', title: '回退一步', html: ui.icon('back'), onclick: () => this.regress(data, post, container) }) : null,
+        ui.el('button', { class: 'btn btn-ghost btn-sm', html: ui.icon('edit'), title: '编辑', onclick: () => this.postForm(container, post) }),
+        ui.el('button', { class: 'btn btn-ghost btn-sm', html: ui.icon('trash'), title: '删除', onclick: () => this.deletePost(data, post, container) }),
       ]),
-      (post.link || post.publishDate || post.note) ? ui.el('div', { class: 'ic-foot' }, [
-        post.link ? ui.el('a', { class: 'chip plain', href: post.link, target: '_blank', rel: 'noopener', text: '链接' }) : null,
-        post.publishDate ? ui.el('span', { class: 'chip plain', text: '发布于 ' + post.publishDate }) : null,
-        post.note ? ui.el('span', { class: 'chip plain', text: post.note }) : null,
-      ]) : null,
     ]);
-    return card;
+    // 第二层：标题/内容，有链接时可点击直接跳转
+    const second = post.link
+      ? ui.el('a', { class: 'ic-title ic-link', href: post.link, target: '_blank', rel: 'noopener', title: '点击打开链接', text: post.title })
+      : ui.el('div', { class: 'ic-title', text: post.title });
+    // 第三层：备注
+    const third = post.note ? ui.el('div', { class: 'ic-note', text: post.note }) : null;
+    return ui.el('div', { class: 'item-card' }, [first, second, third]);
   },
 
   advance(data, post, container) {
