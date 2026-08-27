@@ -3,7 +3,7 @@
 
 const MediaView = {
   state: { tab: 'ideas', platform: 'all' },
-  PLATFORMS: ['小红书', '抖音', '视频号', '公众号'],
+  PLATFORMS: ['小红书', '抖音', '视频号', '公众号', '快手'],
   STATUSES: [
     { key: 'idea', label: '灵感', next: 'writing', color: 'st-idea' },
     { key: 'writing', label: '撰写', next: 'ready', color: 'st-writing' },
