@@ -2,6 +2,7 @@
 // 运动计划：每周计划（瑜伽/拉伸）+ 每日打卡 + 本周统计
 
 const ExerciseView = {
+  state: { weekDate: null },
   _statsEls: null,
 
   render(main) {
@@ -15,6 +16,7 @@ const ExerciseView = {
   refresh(container) {
     this._statsEls = null;
     this._container = container;
+    if (!this.state.weekDate) this.state.weekDate = Dates.todayStr();
     container.innerHTML = '';
     container.appendChild(ui.el('div', { class: 'page-head' }, [
       ui.el('h1', { class: 'page-title', text: '运动计划' }),
@@ -28,13 +30,13 @@ const ExerciseView = {
 
   stats() {
     const data = Store.state.data.exercise;
-    const today = Dates.todayStr();
-    const days = Dates.weekDays(today);
+    const weekDate = this.state.weekDate || Dates.todayStr();
+    const days = Dates.weekDays(weekDate);
     const checkins = data.checkins || {};
     const weekPlan = data.weekPlan || {};
     const doneCount = days.filter((d) => checkins[d] && checkins[d].done).length;
     const planCount = Object.values(weekPlan).filter((p) => p && p.content).length;
-    return { doneCount, planCount };
+    return { doneCount, planCount, days };
   },
 
   // 只更新统计数字，不重建页面（避免输入框失焦/丢焦点）
@@ -87,19 +89,56 @@ const ExerciseView = {
     });
   },
 
+  openCalendar() {
+    const data = Store.state.data.exercise;
+    const checkins = data.checkins || {};
+    const weekPlan = data.weekPlan || {};
+    const marks = {};
+    for (const d of Object.keys(checkins)) {
+      const c = checkins[d];
+      if (c && (c.done || c.extra || c.content || c.minutes)) marks[d] = true;
+    }
+    Calendar.open({
+      title: '运动打卡日历',
+      marks,
+      tooltip: (dateStr) => {
+        const c = checkins[dateStr] || {};
+        const plan = weekPlan[String(Dates.weekdayIndex(dateStr))] || {};
+        const lines = [Dates.formatCN(dateStr)];
+        if (c.done) lines.push('✓ 已打卡');
+        const content = c.content || plan.content || '';
+        const minutes = c.minutes != null ? c.minutes : plan.minutes || '';
+        if (content) lines.push('运动：' + content + (minutes ? '，' + minutes + ' 分钟' : ''));
+        if (c.extra) lines.push('额外：' + c.extra);
+        if (!c.done && !content && !c.extra) lines.push('这一天没有运动记录');
+        return lines.join('\n');
+      },
+      onPick: (dateStr) => {
+        this.state.weekDate = dateStr;
+        this.refresh(this._container);
+      },
+    });
+  },
+
   /* ---------- 本周打卡 ---------- */
 
   checkinCard() {
     const data = Store.state.data.exercise;
     const today = Dates.todayStr();
-    const days = Dates.weekDays(today);
+    const weekDate = this.state.weekDate || today;
+    const days = Dates.weekDays(weekDate);
     const checkins = data.checkins || {};
     const { doneCount, planCount } = this.stats();
 
+    const titleRight = ui.el('div', { style: 'display:flex;align-items:center;gap:8px' }, [
+      weekDate !== today ? ui.el('button', { class: 'btn btn-sm', text: '回到本周', onclick: () => { this.state.weekDate = today; this.refresh(this._container); } }) : null,
+      ui.el('button', { class: 'btn btn-ghost btn-sm', title: '打开日历', html: ui.icon('calendar'), onclick: () => this.openCalendar() }),
+    ]);
     const card = ui.el('div', { class: 'card' }, [
       ui.el('div', { class: 'card-title' }, [
         '本周打卡',
-        ui.el('small', { text: '从 ' + Dates.weekStart(today) + ' 开始的一周' }),
+        ui.el('small', { text: weekDate === today ? ('从 ' + Dates.weekStart(today) + ' 开始的一周') : ('正在查看 ' + Dates.weekStart(weekDate) + ' 开始的一周') }),
+        titleRight,
       ]),
     ]);
 
