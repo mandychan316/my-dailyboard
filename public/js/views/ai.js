@@ -182,6 +182,12 @@ const AIView = {
     return wrap;
   },
 
+  // 渲染提示词内容：保留换行，高亮【】结构标签
+  renderPromptText(text) {
+    const esc = ui.escapeHtml(text || '');
+    return esc.replace(/【([^【】]+)】/g, '<b class="pp-tag">【$1】</b>');
+  },
+
   filteredPrompts(data) {
     let prompts = (data.prompts || []).slice();
     if (this.state.category !== 'all') prompts = prompts.filter((p) => p.category === this.state.category);
@@ -205,8 +211,8 @@ const AIView = {
     ]);
     // 第二层：标题
     const second = ui.el('div', { class: 'ic-title', text: p.title });
-    // 第三层：提示词内容
-    const third = ui.el('div', { class: 'ic-body', text: p.content });
+    // 第三层：提示词内容（结构化排版）
+    const third = ui.el('div', { class: 'ic-body prompt-body', html: this.renderPromptText(p.content) });
     return ui.el('div', { class: 'item-card' }, [first, second, third]);
   },
 

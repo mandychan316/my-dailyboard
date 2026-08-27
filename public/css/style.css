@@ -315,6 +315,12 @@ label.field > span { display: block; font-size: 12.5px; color: var(--ink-soft); 
 .item-card .ic-title { margin-top: 10px; display: block; }
 .item-card .ic-title.ic-link { color: var(--primary); text-decoration: none; cursor: pointer; }
 .item-card .ic-title.ic-link:hover { text-decoration: underline; }
+.item-card .ic-body.prompt-body {
+  margin-top: 10px; background: var(--bg-deep);
+  border-left: 3px solid var(--sand); border-radius: 6px;
+  padding: 10px 14px; font-size: 13px; line-height: 1.9; color: var(--ink-soft);
+}
+.pp-tag { color: var(--primary); font-weight: 700; }
 .item-card .ic-note { margin-top: 8px; font-size: 13px; color: var(--ink-soft); white-space: pre-wrap; word-break: break-word; border-top: 1px dashed var(--line); padding-top: 8px; }
 .item-card .ic-foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .item-card .ic-actions { margin-left: auto; display: flex; gap: 4px; }

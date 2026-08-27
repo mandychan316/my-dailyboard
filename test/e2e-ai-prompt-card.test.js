@@ -14,7 +14,7 @@ before(async () => {
     method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       logs: [],
-      prompts: [{ id: 'p1', category: '写作', title: '周报助手', content: '把以下内容整理成一份周报', scene: '每周五', effect: '输出稳定', createdAt: '2026-08-01T00:00:00.000Z' }],
+      prompts: [{ id: 'p1', category: '写作', title: '周报助手', content: '【内容润色】把以下内容整理成一份周报\n【生成海报】基于上述内容生成图片', scene: '每周五', effect: '输出稳定', createdAt: '2026-08-01T00:00:00.000Z' }],
     }),
   });
   const b = await newPage();
@@ -40,8 +40,13 @@ test('第一层展示 分类/场景/效果', async () => {
 test('第二层标题、第三层提示词内容，顺序正确', async () => {
   const title = await page.textContent('.item-card .ic-title');
   assert.strictEqual(title, '周报助手');
-  const body = await page.textContent('.item-card .ic-body');
-  assert.ok(body.includes('把以下内容整理成一份周报'));
+  const body = await page.textContent('.item-card .ic-body.prompt-body');
+  assert.ok(body.includes('把以下内容整理成一份周报'), '提示词内容应完整显示');
+  assert.ok(body.includes('【内容润色】'), '换行结构应保留');
+  // 【】结构标签应高亮为 pp-tag
+  const tags = await page.$$eval('.item-card .ic-body .pp-tag', (ns) => ns.map((n) => n.textContent));
+  assert.ok(tags.includes('【内容润色】'), '【内容润色】应高亮');
+  assert.ok(tags.includes('【生成海报】'), '【生成海报】应高亮');
   const order = await page.$eval('.item-card', (n) => {
     const meta = n.querySelector('.ic-meta');
     const t = n.querySelector('.ic-title');
