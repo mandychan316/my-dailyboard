@@ -106,15 +106,17 @@ const HomeView = {
       .join('  ');
 
     const checkin = (data.exercise.checkins || {})[today];
-    const plan = (data.exercise.weekPlan || {})[String(Dates.weekdayIndex(today))];
+    const plan = (data.exercise.weekPlan || {})[String(Dates.weekdayIndex(today))] || {};
+    const planContent = checkin && checkin.content ? checkin.content : plan.content;
+    const planMinutes = checkin && checkin.content ? (checkin.minutes != null ? checkin.minutes : plan.minutes) : plan.minutes;
     const aiToday = (data.ai.logs || []).filter((l) => l.date === today).length;
     const readyPosts = (data.media.posts || []).filter((p) => p.status === 'ready').length;
 
     let exerciseSummary;
     if (checkin && checkin.done) {
       exerciseSummary = '已完成今日打卡' + (checkin.extra ? ' · ' + checkin.extra : '');
-    } else if (plan && plan.content) {
-      exerciseSummary = '今晚：' + plan.content + (plan.minutes ? '，' + plan.minutes + ' 分钟' : '');
+    } else if (planContent) {
+      exerciseSummary = '今晚：' + planContent + (planMinutes ? '，' + planMinutes + ' 分钟' : '');
     } else {
       exerciseSummary = '今天没有安排，也可以拉伸一下';
     }

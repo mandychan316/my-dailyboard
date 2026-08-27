@@ -35,7 +35,11 @@ const ExerciseView = {
     const checkins = data.checkins || {};
     const weekPlan = data.weekPlan || {};
     const doneCount = days.filter((d) => checkins[d] && checkins[d].done).length;
-    const planCount = Object.values(weekPlan).filter((p) => p && p.content).length;
+    const planCount = days.filter((d) => {
+      const c = checkins[d] || {};
+      const p = weekPlan[String(Dates.weekdayIndex(d))] || {};
+      return c.content || p.content;
+    }).length;
     return { doneCount, planCount, days };
   },
 
@@ -142,9 +146,34 @@ const ExerciseView = {
       ]),
     ]);
 
+    const weekPlan = data.weekPlan || {};
     for (const d of days) {
       const c = checkins[d] || {};
       const isToday = d === today;
+      const planForDay = weekPlan[String(Dates.weekdayIndex(d))] || {};
+      const required = ui.el('input', {
+        type: 'text',
+        placeholder: '需锻炼…',
+        title: '今天需要锻炼的内容',
+        value: c.content || planForDay.content || '',
+        onchange: (e) => {
+          Store.mutate('exercise', (m) => {
+            if (!m.checkins[d]) m.checkins[d] = { done: false, extra: '', content: '' };
+            m.checkins[d].content = e.target.value.trim();
+          });
+        },
+      });
+      const extra = ui.el('input', {
+        type: 'text',
+        placeholder: '额外练了什么（可选）',
+        value: c.extra || '',
+        onchange: (e) => {
+          Store.mutate('exercise', (m) => {
+            if (!m.checkins[d]) m.checkins[d] = { done: false, extra: '', content: '' };
+            m.checkins[d].extra = e.target.value.trim();
+          });
+        },
+      });
       const row = ui.el('div', { class: 'checkin-row' + (isToday ? ' today' : '') }, [
         ui.el('div', { class: 'ci-date' }, [
           d.slice(5),
@@ -156,25 +185,14 @@ const ExerciseView = {
           text: c.done ? '已打卡' : '打卡',
           onclick: () => {
             Store.mutate('exercise', (m) => {
-              const cur = m.checkins[d] || { done: false, extra: '' };
-              m.checkins[d] = { done: !cur.done, extra: cur.extra || '' };
+              const cur = m.checkins[d] || { done: false, extra: '', content: '' };
+              m.checkins[d] = { done: !cur.done, extra: cur.extra || '', content: cur.content || '' };
             });
             this.refresh(this._container);
           },
         }),
-        ui.el('div', { class: 'ci-extra' }, [
-          ui.el('input', {
-            type: 'text',
-            placeholder: '额外练了什么（可选）',
-            value: c.extra || '',
-            onchange: (e) => {
-              Store.mutate('exercise', (m) => {
-                if (!m.checkins[d]) m.checkins[d] = { done: false };
-                m.checkins[d].extra = e.target.value.trim();
-              });
-            },
-          }),
-        ]),
+        ui.el('div', { class: 'ci-required' }, [required]),
+        ui.el('div', { class: 'ci-extra' }, [extra]),
       ]);
       card.appendChild(row);
     }
