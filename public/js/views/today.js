@@ -133,14 +133,15 @@ const TodayView = {
   },
 
   taskItem(data, date, task, container) {
-    const meta = [];
-    if (task.priority) {
-      const priText = { high: '高', mid: '中', low: '低' }[task.priority] || '中';
-      meta.push(ui.el('span', { class: 'meta pri-' + (task.priority || 'mid'), text: '优先级 · ' + priText }));
-    }
+    const priText = { high: '高', mid: '中', low: '低' }[task.priority] || '中';
+    const priChip = task.priority
+      ? ui.el('span', { class: 'meta pri-' + (task.priority || 'mid'), title: '优先级', text: priText })
+      : null;
     const main = ui.el('div', { class: 'task-main' }, [
-      ui.el('div', { class: 'task-text', text: task.text }),
-      meta.length ? ui.el('div', { class: 'task-meta' }, meta) : null,
+      ui.el('div', { class: 'task-text-row' }, [
+        ui.el('span', { class: 'task-text', text: task.text }),
+        priChip,
+      ]),
       task.note ? ui.el('div', { class: 'task-note', text: task.note }) : null,
     ]);
     const item = ui.el('div', { class: 'task-item' + (task.done ? ' done' : '') }, [

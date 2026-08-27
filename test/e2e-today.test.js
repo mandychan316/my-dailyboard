@@ -46,6 +46,22 @@ test('回车键也能添加事项', async () => {
   assert.strictEqual(count, 2);
 });
 
+test('优先级显示在内容名称后面并保留间距', async () => {
+  const info = await page.$eval('.task-item:first-child .task-text-row', (n) => {
+    const text = n.querySelector('.task-text');
+    const meta = n.querySelector('.meta');
+    return {
+      hasText: !!text,
+      hasMeta: !!meta,
+      sameLine: text && meta ? (text.getBoundingClientRect().bottom >= meta.getBoundingClientRect().top && meta.getBoundingClientRect().bottom >= text.getBoundingClientRect().top) : false,
+      gap: text && meta ? Math.round(meta.getBoundingClientRect().left - text.getBoundingClientRect().right) : -1,
+    };
+  });
+  assert.ok(info.hasText && info.hasMeta, '内容后应紧跟优先级');
+  assert.ok(info.sameLine, '优先级应与内容同一行');
+  assert.ok(info.gap >= 6 && info.gap <= 80, '内容与优先级之间应有间距: ' + info.gap);
+});
+
 test('勾选完成：进度更新，再点取消恢复', async () => {
   // 勾选第一项
   await page.click('.task-item:first-child .task-check');
