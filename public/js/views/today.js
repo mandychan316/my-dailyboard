@@ -89,7 +89,6 @@ const TodayView = {
 
   addForm(data, date, container) {
     const text = ui.el('input', { type: 'text', id: 'task-text', placeholder: '想做什么？' });
-    const time = ui.el('input', { type: 'time', id: 'task-time' });
     const priority = ui.el('select', { id: 'task-priority' }, [
       ui.el('option', { value: 'high', text: '高优先级' }),
       ui.el('option', { value: 'mid', text: '中优先级', selected: '' }),
@@ -102,7 +101,6 @@ const TodayView = {
       const item = {
         id: Store.genId(),
         text: t,
-        time: time.value || '',
         priority: priority.value,
         note: note.value.trim(),
         done: false,
@@ -112,14 +110,14 @@ const TodayView = {
         if (!m.tasksByDate[date]) m.tasksByDate[date] = [];
         m.tasksByDate[date].push(item);
       });
-      text.value = ''; time.value = ''; note.value = '';
+      text.value = ''; note.value = '';
       priority.value = 'mid';
       text.focus();
       this.refresh(container);
     };
     text.addEventListener('keydown', (e) => { if (e.key === 'Enter') add(); });
     const btn = ui.el('button', { class: 'btn btn-primary', text: '添加', onclick: add });
-    return ui.el('div', { class: 'add-task' }, [text, time, priority, note, btn]);
+    return ui.el('div', { class: 'add-task' }, [text, priority, note, btn]);
   },
 
   taskList(data, date, container) {
@@ -136,7 +134,6 @@ const TodayView = {
 
   taskItem(data, date, task, container) {
     const meta = [];
-    if (task.time) meta.push(ui.el('span', { class: 'meta', text: task.time }));
     if (task.priority) {
       const priText = { high: '高', mid: '中', low: '低' }[task.priority] || '中';
       meta.push(ui.el('span', { class: 'meta pri-' + (task.priority || 'mid'), text: '优先级 · ' + priText }));
@@ -176,7 +173,6 @@ const TodayView = {
 
   editTask(data, date, task, container) {
     const text = ui.el('input', { type: 'text', value: task.text });
-    const time = ui.el('input', { type: 'time', value: task.time || '' });
     const priority = ui.el('select', {}, [
       ui.el('option', { value: 'high', text: '高优先级' }),
       ui.el('option', { value: 'mid', text: '中优先级' }),
@@ -189,10 +185,7 @@ const TodayView = {
     const box = ui.el('div', { class: 'modal form-modal' }, [
       ui.el('div', { class: 'modal-title', text: '编辑事项' }),
       ui.el('label', { class: 'field' }, [ui.el('span', { text: '内容' }), text]),
-      ui.el('div', { class: 'field-row' }, [
-        ui.el('label', { class: 'field' }, [ui.el('span', { text: '时间（可选）' }), time]),
-        ui.el('label', { class: 'field' }, [ui.el('span', { text: '优先级' }), priority]),
-      ]),
+      ui.el('label', { class: 'field' }, [ui.el('span', { text: '优先级' }), priority]),
       ui.el('label', { class: 'field' }, [ui.el('span', { text: '备注（可选）' }), note]),
       ui.el('div', { class: 'modal-actions' }, [
         ui.el('button', { class: 'btn', text: '取消', onclick: () => overlay.remove() }),
@@ -203,7 +196,7 @@ const TodayView = {
             if (!t) { ui.toast('内容不能为空', 'warn'); return; }
             Store.mutate('today', (m) => {
               const x = m.tasksByDate[date].find((y) => y.id === task.id);
-              if (x) { x.text = t; x.time = time.value; x.priority = priority.value; x.note = note.value.trim(); }
+              if (x) { x.text = t; x.priority = priority.value; x.note = note.value.trim(); }
             });
             overlay.remove();
             this.refresh(container);

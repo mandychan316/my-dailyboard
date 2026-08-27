@@ -21,16 +21,16 @@ after(async () => {
   if (server) server.proc.kill();
 });
 
-test('新增事项：内容/时间/优先级/备注都显示', async () => {
+test('新增事项：内容/优先级/备注都显示，且没有时间选项', async () => {
+  const hasTime = await page.$('#task-time');
+  assert.strictEqual(hasTime, null, '新增表单不应有时间输入');
   await page.fill('#task-text', '写周报');
-  await page.fill('#task-time', '10:30');
   await page.selectOption('#task-priority', 'high');
   await page.fill('#task-note', '汇总本周 AI 实践');
   await page.click('button:has-text("添加")');
   await waitFor(() => page.$eval('.task-item', (n) => n.textContent.includes('写周报')));
   const text = await page.textContent('.task-item');
   assert.ok(text.includes('写周报'), '内容');
-  assert.ok(text.includes('10:30'), '时间');
   assert.ok(text.includes('高'), '优先级');
   assert.ok(text.includes('汇总本周 AI 实践'), '备注');
   // 进度应为 0/1
