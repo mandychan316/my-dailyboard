@@ -86,18 +86,9 @@ test('删除每日必吃：只从模板删除，本周安排保留', async () =>
   assert.strictEqual(countAfter, todayCount, '删除模板项不应影响本周已生成的安排');
 });
 
-test('复制今天的安排粘贴到本周另一天', async () => {
-  const idx = weekDays.indexOf(todayStr);
-  const target = weekDays[(idx + 1) % 7];
-  const targetHead = Dates.weekdayCN(target).replace('星期', '周') + ' ' + target.slice(5);
-  const todayCard = page.locator('.dw-card.today');
-  const todayTexts = await todayCard.locator('.dw-item .dw-text').allTextContents();
-  assert.ok(todayTexts.length >= 1);
-  await todayCard.locator('.dw-ops button:has-text("复制")').click();
-  const targetCard = page.locator('.dw-card').filter({ hasText: targetHead });
-  await targetCard.locator('.dw-ops button:has-text("粘贴")').click();
-  await waitFor(async () => {
-    const j = await (await fetch(base + '/api/data')).json();
-    return (j.diet.days[target] || {}).items && j.diet.days[target].items.length === todayTexts.length;
-  });
+test('本周执行没有复制/粘贴功能', async () => {
+  const hasCopy = await page.$('.dw-card .dw-ops button:has-text("复制")');
+  const hasPaste = await page.$('.dw-card .dw-ops button:has-text("粘贴")');
+  assert.strictEqual(hasCopy, null, '不应有复制按钮');
+  assert.strictEqual(hasPaste, null, '不应有粘贴按钮');
 });

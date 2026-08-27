@@ -3,7 +3,6 @@
 
 const DietView = {
   state: { weekDate: null },
-  _copyBuffer: null,
 
   render(main) {
     const page = ui.el('div', { class: 'page' });
@@ -123,11 +122,7 @@ const DietView = {
       const input = ui.el('input', { type: 'text', placeholder: '当天额外加…' });
       const addBtn = ui.el('button', { class: 'btn btn-sm btn-primary', text: '添加', onclick: () => this.addItem(d, input, container) });
       input.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.addItem(d, input, container); });
-      const ops = ui.el('div', { class: 'dw-ops' }, [
-        ui.el('button', { class: 'btn btn-ghost btn-sm', text: '复制', title: '复制这一天的安排', onclick: () => this.copyDay(d) }),
-        ui.el('button', { class: 'btn btn-ghost btn-sm', text: '粘贴', title: '用复制的安排覆盖这一天', onclick: () => this.pasteDay(d, container) }),
-      ]);
-      grid.appendChild(ui.el('div', { class: 'card dw-card' + (isToday ? ' today' : ''), 'data-date': d }, [head, list, ui.el('div', { class: 'dw-add' }, [input, addBtn]), ops]));
+      grid.appendChild(ui.el('div', { class: 'card dw-card' + (isToday ? ' today' : ''), 'data-date': d }, [head, list, ui.el('div', { class: 'dw-add' }, [input, addBtn])]));
     }
     card.appendChild(grid);
     return card;
@@ -176,21 +171,6 @@ const DietView = {
       if (m.days[d]) m.days[d].items = m.days[d].items.filter((x) => x.id !== id);
     });
     this.refresh(container);
-  },
-
-  copyDay(d) {
-    const day = (Store.state.data.diet.days || {})[d] || {};
-    this._copyBuffer = (day.items || []).map((i) => ({ text: i.text, done: i.done }));
-    ui.toast('已复制 ' + (d === Dates.todayStr() ? '今天' : d.slice(5)) + ' 的安排');
-  },
-
-  pasteDay(d, container) {
-    if (!this._copyBuffer || !this._copyBuffer.length) { ui.toast('先复制某天的安排', 'warn'); return; }
-    Store.mutate('diet', (m) => {
-      m.days[d] = { items: this._copyBuffer.map((i) => ({ id: Store.genId(), text: i.text, done: i.done })) };
-    });
-    this.refresh(container);
-    ui.toast('已粘贴到 ' + (d === Dates.todayStr() ? '今天' : d.slice(5)));
   },
 
   /* ---------- 日历 ---------- */
