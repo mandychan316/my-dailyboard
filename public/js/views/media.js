@@ -2,7 +2,7 @@
 // 自媒体：灵感库 + 内容管理 + 本月统计
 
 const MediaView = {
-  state: { tab: 'ideas', platform: 'all' },
+  state: { tab: 'ideas', platform: 'all', status: 'all' },
   PLATFORMS: ['小红书', '抖音', '视频号', '公众号', '快手'],
   STATUSES: [
     { key: 'idea', label: '灵感', next: 'writing', color: 'st-idea' },
@@ -26,7 +26,7 @@ const MediaView = {
       ui.el('h1', { class: 'page-title', text: '自媒体' }),
       ui.el('div', { class: 'page-sub', text: '小红书是主阵地，灵感别丢，进度看得见' }),
     ]));
-    container.appendChild(this.stats());
+    container.appendChild(this.stats(container));
     container.appendChild(this.tabs(container));
     if (this.state.tab === 'ideas') container.appendChild(this.ideasView(container));
     else container.appendChild(this.postsView(container));
@@ -37,7 +37,7 @@ const MediaView = {
     return s ? s.color : 'st-idea';
   },
 
-  stats() {
+  stats(container) {
     const data = Store.state.data.media;
     const posts = data.posts || [];
     const ideas = data.ideas || [];
@@ -53,11 +53,16 @@ const MediaView = {
       ? Object.entries(byPlatform).map(([k, v]) => k + ' ' + v).join('　')
       : '本月还没有发布记录';
 
+    const goPosts = (status) => {
+      this.state.tab = 'posts';
+      this.state.status = status;
+      this.refresh(container);
+    };
     const row = ui.el('div', { class: 'stat-row' }, [
-      this.statCard('本月已发布', publishedMonth.length, 'primary'),
-      this.statCard('待发布', ready, 'accent'),
-      this.statCard('撰写中', writing, ''),
-      this.statCard('灵感', ideaCount, ''),
+      this.statCard('本月已发布', publishedMonth.length, 'primary', () => goPosts('published')),
+      this.statCard('待发布', ready, 'accent', () => goPosts('ready')),
+      this.statCard('撰写中', writing, '', () => goPosts('writing')),
+      this.statCard('灵感', ideaCount, '', () => { this.state.tab = 'ideas'; this.refresh(container); }),
     ]);
     const summary = ui.el('div', { class: 'card', style: 'padding:10px 16px;margin-bottom:16px;font-size:12.5px;color:var(--ink-soft)' }, [
       ui.el('span', { text: '本月发布分布：' + platformText }),
@@ -68,11 +73,13 @@ const MediaView = {
     return wrap;
   },
 
-  statCard(label, num, cls) {
-    return ui.el('div', { class: 'stat-card' }, [
+  statCard(label, num, cls, onClick) {
+    const card = ui.el('div', { class: 'stat-card' + (onClick ? ' clickable' : ''), title: onClick ? '点击查看' : '' }, [
       ui.el('div', { class: 'stat-num ' + (cls || ''), text: String(num) }),
       ui.el('div', { class: 'stat-label', text: label }),
     ]);
+    if (onClick) card.addEventListener('click', onClick);
+    return card;
   },
 
   tabs(container) {
@@ -172,8 +179,16 @@ const MediaView = {
     filter.value = this.state.platform;
     filter.addEventListener('change', () => { this.state.platform = filter.value; this.refresh(container); });
 
+    const statusFilter = ui.el('select', { id: 'post-status-filter' }, [ui.el('option', { value: 'all', text: '全部状态' })].concat(
+      this.STATUSES.map((st) => ui.el('option', { value: st.key, text: st.label }))
+    ));
+    statusFilter.value = this.state.status;
+    statusFilter.addEventListener('change', () => { this.state.status = statusFilter.value; this.refresh(container); });
+
     wrap.appendChild(ui.el('div', { class: 'filter-bar' }, [
       filter,
+      ui.el('span', { class: 'hint', text: '状态' }),
+      statusFilter,
       ui.el('div', { style: 'flex:1' }),
       ui.el('button', { class: 'btn btn-primary', html: ui.icon('plus') + '新增内容', onclick: () => this.postForm(container, null) }),
     ]));
@@ -191,6 +206,7 @@ const MediaView = {
   filteredPosts(data) {
     let posts = (data.posts || []).slice();
     if (this.state.platform !== 'all') posts = posts.filter((p) => p.platform === this.state.platform);
+    if (this.state.status !== 'all') posts = posts.filter((p) => p.status === this.state.status);
     posts.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     return posts;
   },
