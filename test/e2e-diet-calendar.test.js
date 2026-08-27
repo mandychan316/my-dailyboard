@@ -63,12 +63,12 @@ test('点击日期切到对应周，可回到本周', async () => {
   await waitFor(() => page.$('.cal-cell'));
   await page.click('.cal-cell.has[data-date="' + otherWeek + '"]');
   await waitFor(() => page.$('button:has-text("回到本周")'));
-  const small = await page.textContent('.card:has-text("本周执行") .card-title small');
+  const small = await page.textContent('.card:has-text("本周打卡") .card-title small');
   assert.ok(small.includes('正在查看 ' + Dates.weekStart(otherWeek)), '应显示所查看周: ' + small);
   // 该周（上周）应显示记录内容
   await waitFor(() => page.$$eval('.dw-card', (ns) => ns.some((n) => n.textContent.includes('牛奶'))));
   await page.click('button:has-text("回到本周")');
-  await waitFor(() => page.$eval('.card:has-text("本周执行") .card-title small', (n, exp) => n.textContent.includes(exp), '从 ' + Dates.weekStart(today)));
+  await waitFor(() => page.$eval('.card:has-text("本周打卡") .card-title small', (n, exp) => n.textContent.includes(exp), '从 ' + Dates.weekStart(today)));
 });
 
 test('可翻到当年 1 月查看 1/1 开始的记录', async () => {

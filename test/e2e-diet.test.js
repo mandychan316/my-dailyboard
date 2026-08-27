@@ -24,11 +24,11 @@ after(async () => {
   if (server) server.proc.kill();
 });
 
-test('页面包含「每日必吃」与「本周执行」两块', async () => {
+test('页面包含「每日必吃」与「本周打卡」两块', async () => {
   const title = await page.textContent('.page-title');
   assert.ok(title.includes('饮食计划'));
   await waitFor(() => page.$('.card:has-text("每日必吃")'));
-  await waitFor(() => page.$('.card:has-text("本周执行")'));
+  await waitFor(() => page.$('.card:has-text("本周打卡")'));
 });
 
 test('添加每日必吃：本周每天自动带上，数据落盘', async () => {

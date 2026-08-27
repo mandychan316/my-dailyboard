@@ -96,7 +96,7 @@ const DietView = {
     ]);
     const card = ui.el('div', { class: 'card' }, [
       ui.el('div', { class: 'card-title' }, [
-        '本周执行',
+        '本周打卡',
         ui.el('small', { text: weekDate === today ? ('从 ' + Dates.weekStart(today) + ' 开始的一周') : ('正在查看 ' + Dates.weekStart(weekDate) + ' 开始的一周') }),
         titleRight,
       ]),
