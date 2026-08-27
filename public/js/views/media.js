@@ -259,14 +259,12 @@ const MediaView = {
     const overlay = ui.el('div', { class: 'modal-overlay' });
     const box = ui.el('div', { class: 'modal form-modal' }, [
       ui.el('div', { class: 'modal-title', text: post ? '编辑内容' : '新增内容' }),
-      ui.el('div', { class: 'field-row' }, [
-        ui.el('label', { class: 'field' }, [ui.el('span', { text: '平台' }), platform]),
-        ui.el('label', { class: 'field' }, [ui.el('span', { text: '状态' }), status]),
-      ]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '标题 / 内容' }), title]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '链接' }), link]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '发布日期' }), publishDate]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '备注' }), note]),
+      ui.formRow('标题 / 内容', title),
+      ui.formRow('平台', platform),
+      ui.formRow('状态', status),
+      ui.formRow('链接', link),
+      ui.formRow('发布日期', publishDate),
+      ui.formRow('备注', note),
       ui.el('div', { class: 'modal-actions' }, [
         ui.el('button', { class: 'btn', text: '取消', onclick: () => overlay.remove() }),
         ui.el('button', {
