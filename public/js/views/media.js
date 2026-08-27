@@ -187,7 +187,6 @@ const MediaView = {
 
     wrap.appendChild(ui.el('div', { class: 'filter-bar' }, [
       filter,
-      ui.el('span', { class: 'hint', text: '状态' }),
       statusFilter,
       ui.el('div', { style: 'flex:1' }),
       ui.el('button', { class: 'btn btn-primary', html: ui.icon('plus') + '新增内容', onclick: () => this.postForm(container, null) }),
