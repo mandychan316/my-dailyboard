@@ -54,9 +54,10 @@ test('按新顺序填写并保存一条内容', async () => {
   await waitFor(() => page.$eval('.item-card', (n) => n.textContent.includes('新的小红书选题')));
   const text = await page.textContent('.item-card');
   assert.ok(text.includes('小红书'));
-  assert.ok(text.includes('待发布'));
   assert.ok(text.includes('2026-08-30'));
   assert.ok(text.includes('记得配图'));
+  const advance = await page.$('.item-card button:has-text("推进")');
+  assert.ok(advance, '待发布内容应有推进按钮');
   const href = await page.$eval('.item-card a[href]', (n) => n.getAttribute('href'));
   assert.strictEqual(href, 'https://example.com/post', '链接应保存');
 });

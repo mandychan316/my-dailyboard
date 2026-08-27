@@ -217,7 +217,6 @@ const MediaView = {
       ui.el('div', { class: 'ic-top' }, [
         ui.el('div', { style: 'flex:1;min-width:0' }, [
           ui.el('span', { class: 'chip', text: post.platform }),
-          ui.el('span', { class: 'status ' + status.color, text: status.label, style: 'margin-left:8px' }),
           ui.el('div', { class: 'ic-title', style: 'margin-top:6px', text: post.title }),
         ]),
         ui.el('div', { class: 'ic-actions' }, [

@@ -37,7 +37,8 @@ test('灵感转为内容：灵感标记已转，内容管理出现撰写中', as
   await page.click('.tab:has-text("内容管理")');
   await waitFor(() => page.$eval('.item-card', (n) => n.textContent.includes('瑜伽初学者 10 个动作')));
   const text = await page.textContent('.item-card');
-  assert.ok(text.includes('撰写'));
+  // 撰写中：卡片有“推进 → 待发布”按钮（卡片上不再显示状态标签）
+  assert.ok(text.includes('推进 → 待发布'), '撰写中内容应有推进到待发布的按钮: ' + text);
 });
 
 test('新增内容：平台/标题/状态/链接/日期/备注都保存', async () => {
@@ -55,10 +56,12 @@ test('新增内容：平台/标题/状态/链接/日期/备注都保存', async 
   await waitFor(() => page.$$eval('.item-card', (ns) => ns.length === 2));
   const text = await page.textContent('.item-card:first-child');
   assert.ok(text.includes('周末探店 Vlog'));
-  assert.ok(text.includes('待发布'));
   assert.ok(text.includes('抖音'));
   assert.ok(text.includes('2026-08-30'));
   assert.ok(text.includes('记得加字幕'));
+  // 待发布状态通过“推进到已发布”按钮体现（卡片上不再显示状态标签）
+  const advance = await page.$('.item-card:first-child button:has-text("推进")');
+  assert.ok(advance, '待发布内容应有推进按钮');
 });
 
 test('按平台筛选内容', async () => {
@@ -76,17 +79,16 @@ test('按平台筛选内容', async () => {
 });
 
 test('状态推进到已发布自动填日期，可回退', async () => {
-  // 第一张卡是 Vlog（待发布）
+  // 第一张卡是 Vlog（待发布），有“推进”按钮且无“回退”前置于撰写
   await page.click('.item-card:first-child button:has-text("推进")');
-  await waitFor(() => page.$eval('.item-card:first-child', (n) => n.textContent.includes('已发布')));
-  let text = await page.textContent('.item-card:first-child');
-  assert.ok(text.includes('已发布'));
-  // 回退一步
+  // 已发布：推进按钮消失，保留回退按钮
+  await waitFor(() => page.$eval('.item-card:first-child', (n) => !n.textContent.includes('推进')));
+  // 回退一步：推进按钮恢复
   await page.click('.item-card:first-child button[title="回退一步"]');
-  await waitFor(() => page.$eval('.item-card:first-child', (n) => n.textContent.includes('待发布')));
+  await waitFor(() => page.$eval('.item-card:first-child', (n) => n.textContent.includes('推进')));
   // 再推进回已发布（保持最终状态）
   await page.click('.item-card:first-child button:has-text("推进")');
-  await waitFor(() => page.$eval('.item-card:first-child', (n) => n.textContent.includes('已发布')));
+  await waitFor(() => page.$eval('.item-card:first-child', (n) => !n.textContent.includes('推进')));
 });
 
 test('本月统计数字与数据一致', async () => {
