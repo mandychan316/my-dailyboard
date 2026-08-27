@@ -1,10 +1,8 @@
 'use strict';
-// 饮食计划：整周三餐安排 + 复制到另一天 + 吃完打勾
+// 饮食计划：每天记录必吃内容 + 打勾是否吃过（不区分早中晚）
 
 const DietView = {
   _copyBuffer: null,
-  MEAL_KEYS: ['breakfast', 'lunch', 'dinner'],
-  MEAL_LABELS: ['早', '午', '晚'],
 
   render(main) {
     const page = ui.el('div', { class: 'page' });
@@ -18,7 +16,7 @@ const DietView = {
     container.innerHTML = '';
     container.appendChild(ui.el('div', { class: 'page-head' }, [
       ui.el('h1', { class: 'page-title', text: '饮食计划' }),
-      ui.el('div', { class: 'page-sub', text: '提前想好每天吃什么，照着吃，不纠结' }),
+      ui.el('div', { class: 'page-sub', text: '把每天必吃的内容记下来，吃过就打个勾' }),
     ]));
     container.appendChild(this.todayBanner());
     container.appendChild(this.weekGrid(container));
@@ -28,106 +26,121 @@ const DietView = {
     const today = Dates.todayStr();
     const span = ui.el('span', { class: 'diet-today-banner' });
     const update = () => {
-      const m = (Store.state.data.diet.meals || {})[today] || {};
-      const parts = this.MEAL_KEYS.map((k, i) => this.MEAL_LABELS[i] + ' ' + (m[k] ? m[k] : '—')).join('　');
-      span.textContent = parts;
+      const day = (Store.state.data.diet.days || {})[today] || {};
+      const items = day.items || [];
+      span.textContent = items.length
+        ? items.map((i) => (i.done ? '✓ ' : '· ') + i.text).join('　')
+        : '还没安排必吃清单';
     };
     update();
     this._bannerUpdate = update;
     return ui.el('div', { class: 'card', style: 'padding:12px 18px;margin-bottom:14px;font-size:13px' }, [
-      ui.el('strong', { text: '今天吃什么　' }),
+      ui.el('strong', { text: '今天必吃　' }),
       span,
     ]);
   },
 
   weekGrid(container) {
     const data = Store.state.data.diet;
-    const meals = data.meals || {};
+    const days = data.days || {};
     const today = Dates.todayStr();
-    const days = Dates.weekDays(today);
-    const grid = ui.el('div', { class: 'diet-grid' });
+    const week = Dates.weekDays(today);
+    const grid = ui.el('div', { class: 'diet-week' });
+    for (const d of week) {
+      const day = days[d] || {};
+      const items = day.items || [];
+      const isToday = d === today;
+      const doneCount = items.filter((i) => i.done).length;
 
-    // 表头
-    grid.appendChild(ui.el('div', { class: 'dg-head', text: '' }));
-    for (const d of days) {
-      grid.appendChild(ui.el('div', { class: 'dg-head' + (d === today ? ' today' : ''), text: Dates.weekdayCN(d).replace('星期', '周') + ' ' + d.slice(5) }));
-    }
-
-    // 三餐输入
-    for (let r = 0; r < 3; r++) {
-      const key = this.MEAL_KEYS[r];
-      grid.appendChild(ui.el('div', { class: 'dg-label', text: this.MEAL_LABELS[r] }));
-      for (const d of days) {
-        const m = meals[d] || {};
-        const ta = ui.el('textarea', { 'data-date': d, 'data-meal': key, placeholder: this.MEAL_LABELS[r] + '餐…' }, [m[key] || '']);
-        ta.addEventListener('input', () => this.saveMeal(d, key, ta.value));
-        grid.appendChild(ui.el('div', { class: 'dg-cell' }, [ta]));
-      }
-    }
-
-    // 吃完打勾 + 复制/粘贴
-    grid.appendChild(ui.el('div', { class: 'dg-label', text: '' }));
-    for (const d of days) {
-      const m = meals[d] || {};
-      const cell = ui.el('div', { class: 'dg-cell' });
-      const doneRow = ui.el('div', { class: 'dg-done' });
-      for (let r = 0; r < 3; r++) {
-        const k = this.MEAL_KEYS[r];
-        const on = !!(m.done && m.done[k]);
-        doneRow.appendChild(ui.el('button', {
-          'data-date': d, 'data-meal': k,
-          class: on ? 'on' : '',
-          text: this.MEAL_LABELS[r] + (on ? '✓' : ''),
-          title: '标记吃完/取消',
-          onclick: () => {
-            Store.mutate('diet', (mm) => {
-              if (!mm.meals[d]) mm.meals[d] = { breakfast: '', lunch: '', dinner: '', done: {} };
-              if (!mm.meals[d].done) mm.meals[d].done = {};
-              mm.meals[d].done[k] = !on;
-            });
-            this.refresh(container);
-          },
-        }));
-      }
-      cell.appendChild(doneRow);
-      const ops = ui.el('div', { class: 'dg-done', style: 'margin-top:6px' }, [
-        ui.el('button', { class: 'dg-copy', 'data-date': d, text: '复制', title: '复制这一天的安排', onclick: () => this.copyDay(d) }),
-        ui.el('button', { class: 'dg-paste', 'data-date': d, text: '粘贴', title: '把复制的安排粘到这里', onclick: () => this.pasteDay(d, container) }),
+      const head = ui.el('div', { class: 'dw-head' + (isToday ? ' today' : '') }, [
+        ui.el('span', { class: 'dw-day', text: Dates.weekdayCN(d).replace('星期', '周') + ' ' + d.slice(5) }),
+        isToday ? ui.el('span', { class: 'chip done', text: '今天' }) : null,
+        ui.el('span', { class: 'dw-count', text: items.length ? doneCount + '/' + items.length : '' }),
       ]);
-      cell.appendChild(ops);
-      grid.appendChild(cell);
-    }
 
-    return ui.el('div', { class: 'card' }, [
-      ui.el('div', { class: 'card-title' }, ['本周安排', ui.el('small', { text: '先「复制」某天，再到目标天「粘贴」' })]),
-      grid,
-    ]);
+      const list = ui.el('div', { class: 'dw-items' });
+      if (!items.length) {
+        list.appendChild(ui.el('div', { class: 'hint', style: 'padding:4px 2px;color:var(--ink-faint)', text: '还没有必吃内容' }));
+      } else {
+        for (const item of items) list.appendChild(this.itemRow(item, d, container));
+      }
+
+      const input = ui.el('input', { type: 'text', placeholder: '添加必吃…' });
+      const addBtn = ui.el('button', { class: 'btn btn-sm btn-primary', text: '添加', onclick: () => this.addItem(d, input, container) });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.addItem(d, input, container); });
+
+      const ops = ui.el('div', { class: 'dw-ops' }, [
+        ui.el('button', { class: 'btn btn-ghost btn-sm', text: '复制', title: '复制这一天的必吃清单', onclick: () => this.copyDay(d) }),
+        ui.el('button', { class: 'btn btn-ghost btn-sm', text: '粘贴', title: '用复制的清单覆盖这一天', onclick: () => this.pasteDay(d, container) }),
+      ]);
+
+      grid.appendChild(ui.el('div', { class: 'card dw-card' + (isToday ? ' today' : ''), 'data-date': d }, [
+        head,
+        list,
+        ui.el('div', { class: 'dw-add' }, [input, addBtn]),
+        ops,
+      ]));
+    }
+    return grid;
   },
 
-  saveMeal(date, key, value) {
+  itemRow(item, d, container) {
+    const row = ui.el('div', { class: 'dw-item' + (item.done ? ' done' : '') }, [
+      ui.el('button', {
+        class: 'dw-check' + (item.done ? ' on' : ''),
+        html: item.done ? ui.icon('check') : '',
+        'data-date': d,
+        'data-item': item.id,
+        title: item.done ? '标记为没吃' : '标记为吃过',
+        onclick: () => this.toggleItem(d, item.id, container),
+      }),
+      ui.el('span', { class: 'dw-text', text: item.text }),
+      ui.el('button', { class: 'btn btn-ghost btn-sm', html: ui.icon('trash'), title: '删除', onclick: () => this.removeItem(d, item.id, container) }),
+    ]);
+    return row;
+  },
+
+  toggleItem(d, id, container) {
     Store.mutate('diet', (m) => {
-      if (!m.meals[date]) m.meals[date] = { breakfast: '', lunch: '', dinner: '', done: {} };
-      m.meals[date][key] = value;
+      const items = (m.days[d] && m.days[d].items) || [];
+      const it = items.find((x) => x.id === id);
+      if (it) it.done = !it.done;
     });
-    if (date === Dates.todayStr() && this._bannerUpdate) this._bannerUpdate();
+    this.refresh(container);
+  },
+
+  addItem(d, input, container) {
+    const t = input.value.trim();
+    if (!t) { ui.toast('写点内容再添加吧', 'warn'); return; }
+    Store.mutate('diet', (m) => {
+      if (!m.days[d]) m.days[d] = { items: [] };
+      m.days[d].items.push({ id: Store.genId(), text: t, done: false });
+    });
+    if (d === Dates.todayStr() && this._bannerUpdate) this._bannerUpdate();
+    this.refresh(container);
+    const nextInput = container.querySelector('.dw-card[data-date="' + d + '"] .dw-add input');
+    if (nextInput) nextInput.focus();
+  },
+
+  async removeItem(d, id, container) {
+    const ok = await ui.confirmDialog('删除必吃项', '确定删除这一项吗？');
+    if (!ok) return;
+    Store.mutate('diet', (m) => {
+      if (m.days[d]) m.days[d].items = m.days[d].items.filter((x) => x.id !== id);
+    });
+    this.refresh(container);
   },
 
   copyDay(d) {
-    const m = (Store.state.data.diet.meals || {})[d] || {};
-    this._copyBuffer = { breakfast: m.breakfast || '', lunch: m.lunch || '', dinner: m.dinner || '' };
-    ui.toast('已复制 ' + (d === Dates.todayStr() ? '今天' : d.slice(5)) + ' 的安排');
+    const day = (Store.state.data.diet.days || {})[d] || {};
+    this._copyBuffer = (day.items || []).map((i) => ({ text: i.text, done: i.done }));
+    ui.toast('已复制 ' + (d === Dates.todayStr() ? '今天' : d.slice(5)) + ' 的必吃清单');
   },
 
   pasteDay(d, container) {
-    if (!this._copyBuffer) { ui.toast('先点某天的「复制」', 'warn'); return; }
-    Store.mutate('diet', (mm) => {
-      const cur = mm.meals[d] || { breakfast: '', lunch: '', dinner: '', done: {} };
-      mm.meals[d] = {
-        breakfast: this._copyBuffer.breakfast,
-        lunch: this._copyBuffer.lunch,
-        dinner: this._copyBuffer.dinner,
-        done: cur.done || {},
-      };
+    if (!this._copyBuffer || !this._copyBuffer.length) { ui.toast('先复制某天的必吃清单', 'warn'); return; }
+    Store.mutate('diet', (m) => {
+      m.days[d] = { items: this._copyBuffer.map((i) => ({ id: Store.genId(), text: i.text, done: i.done })) };
     });
     this.refresh(container);
     ui.toast('已粘贴到 ' + (d === Dates.todayStr() ? '今天' : d.slice(5)));

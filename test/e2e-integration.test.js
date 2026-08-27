@@ -19,7 +19,10 @@ async function seedData() {
   });
   await fetch(base + '/api/data/diet', {
     method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ meals: { [today]: { breakfast: '燕麦牛奶', lunch: '', dinner: '', done: { breakfast: true, lunch: false, dinner: false } } } }),
+    body: JSON.stringify({ days: { [today]: { items: [
+      { id: 'i1', text: '燕麦牛奶', done: true },
+      { id: 'i2', text: '鸡蛋', done: false },
+    ] } } }),
   });
   await fetch(base + '/api/data/exercise', {
     method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -67,7 +70,7 @@ test('首页今日路线摘要与各模块数据一致且点亮', async () => {
   assert.ok(byName['今日计划'].summary.includes('完成 1/2'), JSON.stringify(byName['今日计划']));
   assert.strictEqual(byName['今日计划'].lit, true);
 
-  assert.ok(byName['三餐'].summary.includes('早✓'), JSON.stringify(byName['三餐']));
+  assert.ok(byName['三餐'].summary.includes('必吃 1/2'), JSON.stringify(byName['三餐']));
   assert.strictEqual(byName['三餐'].lit, true);
 
   assert.ok(byName['运动'].summary.includes('已完成今日打卡'), JSON.stringify(byName['运动']));

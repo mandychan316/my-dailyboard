@@ -89,7 +89,7 @@ test('GET /api/data 返回所有模块的默认结构', async () => {
   assert.deepStrictEqual(json.ai, { logs: [], prompts: [] });
   assert.deepStrictEqual(json.media, { ideas: [], posts: [] });
   assert.deepStrictEqual(json.exercise, { weekPlan: {}, checkins: {} });
-  assert.deepStrictEqual(json.diet, { meals: {} });
+  assert.deepStrictEqual(json.diet, { days: {} });
   assert.deepStrictEqual(json.notes, { notes: [] });
   assert.ok(json.meta.schemaVersion >= 1);
 });
@@ -173,6 +173,30 @@ test('恢复备份会覆盖当前数据', async () => {
 
   const getRes = await fetchJSON(base + '/api/data');
   assert.deepStrictEqual(getRes.json.notes, oldPayload);
+});
+
+test('饮食旧版 meals 数据自动迁移为必吃清单', async () => {
+  // 直接写入旧版结构的文件
+  const oldFile = path.join(dataDir, 'diet.json');
+  fs.writeFileSync(oldFile, JSON.stringify({
+    meals: {
+      '2026-08-24': { breakfast: '中药\n茶水\n五红粉', lunch: '111', dinner: '111', done: { dinner: false } },
+      '2026-08-25': { breakfast: '', lunch: '', dinner: '', done: {} },
+    },
+  }, null, 2));
+  const res = await fetchJSON(base + '/api/data');
+  assert.strictEqual(res.status, 200);
+  const diet = res.json.diet;
+  assert.ok(diet.days, '应迁移为 days 结构');
+  const items = diet.days['2026-08-24'].items || [];
+  assert.strictEqual(items.length, 5, '中药/茶水/五红粉/111/111 共 5 项');
+  assert.ok(items.some((i) => i.text === '中药'), '应包含中药');
+  assert.ok(items.some((i) => i.text === '五红粉'), '应包含五红粉');
+  assert.ok(items.some((i) => i.text === '111' && i.done === false), '111 应保留未吃状态');
+  assert.ok(!diet.days['2026-08-25'] || !diet.days['2026-08-25'].items, '空日期不应生成清单');
+  // 落盘文件也应已是新结构
+  const onDisk = JSON.parse(fs.readFileSync(oldFile, 'utf8'));
+  assert.ok(onDisk.days, '文件应已迁移为 days 结构');
 });
 
 test('恢复非法备份返回 400', async () => {

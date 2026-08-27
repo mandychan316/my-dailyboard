@@ -94,16 +94,10 @@ const HomeView = {
     const tasks = (data.today.tasksByDate || {})[today] || [];
     const done = tasks.filter((t) => t.done).length;
 
-    const meals = (data.diet.meals || {})[today] || {};
-    const mealNames = ['breakfast', 'lunch', 'dinner'];
-    const mealLabels = { breakfast: '早', lunch: '午', dinner: '晚' };
-    const mealParts = mealNames
-      .map((k) => {
-        const has = !!(meals[k] && String(meals[k]).trim());
-        const d = !!(meals.done && meals.done[k]);
-        return mealLabels[k] + (d ? '✓' : has ? '·' : '—');
-      })
-      .join('  ');
+    const dietDay = (data.diet.days || {})[today] || {};
+    const dietItems = dietDay.items || [];
+    const dietDone = dietItems.filter((i) => i.done).length;
+    const mealParts = dietItems.length ? '必吃 ' + dietDone + '/' + dietItems.length + (dietDone === dietItems.length ? '，全部吃过 ✓' : '') : '还没安排必吃清单';
 
     const checkin = (data.exercise.checkins || {})[today];
     const plan = (data.exercise.weekPlan || {})[String(Dates.weekdayIndex(today))] || {};
@@ -130,7 +124,7 @@ const HomeView = {
       {
         name: '三餐', icon: 'diet', hash: '#/diet',
         summary: mealParts,
-        lit: mealNames.some((k) => meals[k] && String(meals[k]).trim()),
+        lit: dietItems.length > 0,
       },
       { name: '运动', icon: 'exercise', hash: '#/exercise', summary: exerciseSummary, lit: !!(checkin && checkin.done) },
       {

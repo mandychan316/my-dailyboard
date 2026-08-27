@@ -49,18 +49,50 @@ function defaultModule(name) {
     case 'ai': return { logs: [], prompts: [] };
     case 'media': return { ideas: [], posts: [] };
     case 'exercise': return { weekPlan: {}, checkins: {} };
-    case 'diet': return { meals: {} };
+    case 'diet': return { days: {} };
     case 'notes': return { notes: [] };
     case 'meta': return { schemaVersion: SCHEMA_VERSION, appVersion: APP_VERSION, createdAt: new Date().toISOString() };
     default: return {};
   }
 }
 
+// 饮食数据迁移：旧版 meals(早/午/晚) -> 新版 days(每日必吃清单)
+function migrateDiet(payload) {
+  if (!payload || typeof payload !== 'object') return payload;
+  if (payload.days && typeof payload.days === 'object') return payload;
+  if (payload.meals && typeof payload.meals === 'object') {
+    const days = {};
+    for (const [date, m] of Object.entries(payload.meals)) {
+      if (!m || typeof m !== 'object') continue;
+      const items = [];
+      const done = m.done || {};
+      for (const key of ['breakfast', 'lunch', 'dinner']) {
+        if (m[key] && String(m[key]).trim()) {
+          const isDone = !!done[key];
+          for (const line of String(m[key]).split('\n')) {
+            const text = line.trim();
+            if (text) items.push({ id: 'mig-' + date + '-' + items.length + '-' + Math.random().toString(36).slice(2, 6), text, done: isDone });
+          }
+        }
+      }
+      if (items.length) days[date] = { items };
+    }
+    return { days };
+  }
+  return payload;
+}
+
 function readModule(name) {
   const file = moduleFile(name);
   if (!fs.existsSync(file)) return defaultModule(name);
   try {
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
+    const payload = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (name === 'diet') {
+      const migrated = migrateDiet(payload);
+      if (JSON.stringify(migrated) !== JSON.stringify(payload)) writeModule(name, migrated);
+      return migrated;
+    }
+    return payload;
   } catch (e) {
     return defaultModule(name);
   }
