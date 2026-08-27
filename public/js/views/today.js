@@ -17,6 +17,7 @@ const TodayView = {
     const data = Store.state.data;
     const date = this.state.date;
     const isToday = date === Dates.todayStr();
+    this._container = container;
     container.innerHTML = '';
 
     container.appendChild(ui.el('div', { class: 'page-head' }, [
@@ -42,7 +43,34 @@ const TodayView = {
     if (this.state.date !== Dates.todayStr()) {
       nav.appendChild(ui.el('button', { class: 'btn btn-sm', text: '回到今天', onclick: () => { this.state.date = Dates.todayStr(); this.refresh(container); } }));
     }
+    nav.appendChild(ui.el('button', {
+      class: 'btn btn-ghost btn-sm', title: '打开日历', style: 'margin-left:auto',
+      html: ui.icon('calendar'), onclick: () => this.openCalendar(),
+    }));
     return nav;
+  },
+
+  openCalendar() {
+    const data = Store.state.data;
+    const tasksByDate = (data.today && data.today.tasksByDate) || {};
+    const marks = {};
+    for (const d of Object.keys(tasksByDate)) {
+      if (tasksByDate[d] && tasksByDate[d].length) marks[d] = true;
+    }
+    Calendar.open({
+      title: '今日计划日历',
+      marks,
+      tooltip: (dateStr) => {
+        const list = tasksByDate[dateStr] || [];
+        if (!list.length) return null;
+        const lines = list.map((t) => (t.done ? '✓ ' : '· ') + (t.text || ''));
+        return Dates.formatCN(dateStr) + '\n' + lines.join('\n');
+      },
+      onPick: (dateStr) => {
+        this.state.date = dateStr;
+        this.refresh(this._container);
+      },
+    });
   },
 
   tasks(data, date) {
