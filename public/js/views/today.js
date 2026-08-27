@@ -172,21 +172,21 @@ const TodayView = {
   },
 
   editTask(data, date, task, container) {
-    const text = ui.el('input', { type: 'text', value: task.text });
+    const text = ui.el('input', { type: 'text', value: task.text, placeholder: '要做什么' });
     const priority = ui.el('select', {}, [
       ui.el('option', { value: 'high', text: '高优先级' }),
       ui.el('option', { value: 'mid', text: '中优先级' }),
       ui.el('option', { value: 'low', text: '低优先级' }),
     ]);
     priority.value = task.priority || 'mid';
-    const note = ui.el('textarea', { rows: 2 }, [task.note || '']);
+    const note = ui.el('textarea', { rows: 3, placeholder: '补充说明（可选）' }, [task.note || '']);
     const root = document.getElementById('modal-root');
     const overlay = ui.el('div', { class: 'modal-overlay' });
     const box = ui.el('div', { class: 'modal form-modal' }, [
       ui.el('div', { class: 'modal-title', text: '编辑事项' }),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '内容' }), text]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '优先级' }), priority]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '备注（可选）' }), note]),
+      ui.el('div', { class: 'form-row' }, [ui.el('span', { class: 'fr-label', text: '内容' }), ui.el('div', { class: 'fr-ctl' }, [text])]),
+      ui.el('div', { class: 'form-row' }, [ui.el('span', { class: 'fr-label', text: '优先级' }), ui.el('div', { class: 'fr-ctl' }, [priority])]),
+      ui.el('div', { class: 'form-row' }, [ui.el('span', { class: 'fr-label', text: '备注' }), ui.el('div', { class: 'fr-ctl' }, [note])]),
       ui.el('div', { class: 'modal-actions' }, [
         ui.el('button', { class: 'btn', text: '取消', onclick: () => overlay.remove() }),
         ui.el('button', {
