@@ -23,9 +23,9 @@ after(async () => {
   if (server) server.proc.kill();
 });
 
-test('记录一次弹窗字段按上下顺序展示：日期/用途/工具/做了什么/结果与心得', async () => {
+test('记录一次弹窗字段按上下顺序展示：日期/用途/工具/动作/收获', async () => {
   const labels = await page.$$eval('.form-modal .fr-label', (ns) => ns.map((n) => n.textContent.trim()));
-  assert.deepStrictEqual(labels, ['日期', '用途', '工具', '做了什么', '结果与心得'], '顺序: ' + labels.join(','));
+  assert.deepStrictEqual(labels, ['日期', '用途', '工具', '动作', '收获'], '顺序: ' + labels.join(','));
 });
 
 test('控件对齐：每行都有标签和控件，弹窗宽度适配', async () => {

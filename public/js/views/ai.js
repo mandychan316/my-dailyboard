@@ -93,10 +93,10 @@ const AIView = {
         ]),
       ]),
       log.content ? ui.el('div', { class: 'ic-body' }, [
-        ui.el('strong', { text: '做了什么　' }), document.createTextNode(log.content),
+        ui.el('strong', { text: '动作　' }), document.createTextNode(log.content),
       ]) : null,
       log.reflection ? ui.el('div', { class: 'ic-body' }, [
-        ui.el('strong', { text: '心得　' }), document.createTextNode(log.reflection),
+        ui.el('strong', { text: '收获　' }), document.createTextNode(log.reflection),
       ]) : null,
     ]);
     return card;
@@ -107,8 +107,8 @@ const AIView = {
     const purpose = ui.el('select', {}, this.PURPOSES.map((p) => ui.el('option', { value: p, text: p })));
     purpose.value = log ? (log.purpose || this.PURPOSES[0]) : this.PURPOSES[0];
     const tool = ui.el('input', { type: 'text', list: 'tool-list', value: log ? (log.tool || '') : '', placeholder: '如 ChatGPT / Claude / Codex' });
-    const content = ui.el('textarea', { rows: 3, placeholder: '用 AI 做了什么？' }, [log ? (log.content || '') : '']);
-    const reflection = ui.el('textarea', { rows: 2, placeholder: '结果如何？有什么心得？（可选）' }, [log ? (log.reflection || '') : '']);
+    const content = ui.el('textarea', { rows: 3, placeholder: '做了什么动作？' }, [log ? (log.content || '') : '']);
+    const reflection = ui.el('textarea', { rows: 2, placeholder: '收获如何？有什么体会？（可选）' }, [log ? (log.reflection || '') : '']);
 
     const root = document.getElementById('modal-root');
     const overlay = ui.el('div', { class: 'modal-overlay' });
@@ -118,8 +118,8 @@ const AIView = {
       ui.formRow('日期', date),
       ui.formRow('用途', purpose),
       ui.formRow('工具', [tool, datalist]),
-      ui.formRow('做了什么', content),
-      ui.formRow('结果与心得', reflection),
+      ui.formRow('动作', content),
+      ui.formRow('收获', reflection),
       ui.el('div', { class: 'modal-actions' }, [
         ui.el('button', { class: 'btn', text: '取消', onclick: () => overlay.remove() }),
         ui.el('button', {
