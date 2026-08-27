@@ -141,3 +141,55 @@ test('补充每周计划后，本周打卡的需锻炼自动更新', async () =>
   const todayVal = await page.$eval('.checkin-row[data-date="' + todayDate + '"] .ci-required input', (n) => n.value);
   assert.strictEqual(todayVal, '自定内容', '按日覆盖不应被周计划覆盖');
 });
+
+test('本周打卡增加时长输入，可保存到数据', async () => {
+  const rows = await page.$$eval('.checkin-row', (ns) => ns.map((n) => !!n.querySelector('.ci-minutes input[type="number"]')));
+  assert.strictEqual(rows.length, 7, '应有 7 行');
+  assert.ok(rows.every(Boolean), '每行都应有时长输入');
+  await page.fill('.checkin-row.today .ci-minutes input', '30');
+  await page.click('.page-title'); // 失焦保存
+  const todayStr = Dates.todayStr();
+  await waitFor(async () => {
+    const j = await (await fetch(base + '/api/data')).json();
+    return j.exercise.checkins[todayStr] && j.exercise.checkins[todayStr].minutes === 30;
+  });
+});
+
+test('点击打卡后左侧控件不移动、不重建', async () => {
+  // 确保今天处于未打卡状态
+  const btnText = await page.textContent('.checkin-row.today .btn-ci');
+  if (btnText.includes('已打卡')) {
+    await page.click('.checkin-row.today .btn-ci');
+    await waitFor(() => page.$eval('.checkin-row.today .btn-ci', (n) => n.textContent === '打卡'));
+  }
+  // 填入需锻炼内容并保存
+  await page.fill('.checkin-row.today .ci-required input', '保持不动的内容');
+  await page.click('.page-title');
+  const todayStr = Dates.todayStr();
+  await waitFor(async () => {
+    const j = await (await fetch(base + '/api/data')).json();
+    return j.exercise.checkins[todayStr] && j.exercise.checkins[todayStr].content === '保持不动的内容';
+  });
+  const before = await page.evaluate(() => {
+    const row = document.querySelector('.checkin-row.today');
+    const input = row.querySelector('.ci-required input');
+    const btn = row.querySelector('.btn-ci');
+    const ir = input.getBoundingClientRect();
+    const br = btn.getBoundingClientRect();
+    return { inputLeft: Math.round(ir.left), inputVal: input.value, btnWidth: Math.round(br.width), btnText: btn.textContent };
+  });
+  await page.click('.checkin-row.today .btn-ci');
+  await waitFor(() => page.$eval('.checkin-row.today .btn-ci', (n) => n.textContent === '已打卡'));
+  const after = await page.evaluate(() => {
+    const row = document.querySelector('.checkin-row.today');
+    const input = row.querySelector('.ci-required input');
+    const btn = row.querySelector('.btn-ci');
+    const ir = input.getBoundingClientRect();
+    const br = btn.getBoundingClientRect();
+    return { inputLeft: Math.round(ir.left), inputVal: input.value, btnWidth: Math.round(br.width), btnText: btn.textContent };
+  });
+  assert.strictEqual(after.inputLeft, before.inputLeft, '左侧输入位置不应变化');
+  assert.strictEqual(after.inputVal, before.inputVal, '输入内容不应被清空');
+  assert.strictEqual(after.btnWidth, before.btnWidth, '打卡按钮宽度不应变化');
+  assert.strictEqual(after.btnText, '已打卡');
+});

@@ -136,6 +136,8 @@ const ExerciseView = {
       const plan = weekPlan[String(Dates.weekdayIndex(d))] || {};
       const input = this._container && this._container.querySelector('.checkin-row[data-date="' + d + '"] .ci-required input');
       if (input) input.value = plan.content || '';
+      const minutesInput = this._container && this._container.querySelector('.checkin-row[data-date="' + d + '"] .ci-minutes input');
+      if (minutesInput && (c.minutes === undefined || c.minutes === null)) minutesInput.value = plan.minutes || '';
     }
   },
 
@@ -191,6 +193,33 @@ const ExerciseView = {
           });
         },
       });
+      const minutes = ui.el('input', {
+        type: 'number', min: '0', step: '5', placeholder: '分钟',
+        title: '实际锻炼时长（分钟）',
+        value: c.minutes !== undefined && c.minutes !== null ? c.minutes : (planForDay.minutes || ''),
+        onchange: (e) => {
+          Store.mutate('exercise', (m) => {
+            if (!m.checkins[d]) m.checkins[d] = { done: false, extra: '', content: '' };
+            m.checkins[d].minutes = e.target.value === '' ? undefined : Number(e.target.value);
+          });
+        },
+      });
+      const checkinBtn = ui.el('button', {
+        class: 'btn btn-ci ' + (c.done ? 'btn-primary' : 'btn-ghost'),
+        text: c.done ? '已打卡' : '打卡',
+        onclick: (e) => {
+          // 原地更新打卡状态，不重建页面，避免左侧控件位置变化
+          Store.mutate('exercise', (m) => {
+            const cur = m.checkins[d] || { done: false, extra: '', content: '' };
+            m.checkins[d] = { done: !cur.done, extra: cur.extra || '', content: cur.content || '', minutes: cur.minutes };
+          });
+          this.refreshStats();
+          const btnEl = e.currentTarget;
+          const done = Store.state.data.exercise.checkins[d].done;
+          btnEl.textContent = done ? '已打卡' : '打卡';
+          btnEl.className = 'btn btn-ci ' + (done ? 'btn-primary' : 'btn-ghost');
+        },
+      });
       const row = ui.el('div', { class: 'checkin-row' + (isToday ? ' today' : ''), 'data-date': d }, [
         ui.el('div', { class: 'ci-date' }, [
           d.slice(5),
@@ -198,18 +227,9 @@ const ExerciseView = {
           isToday ? ui.el('span', { class: 'w today-tag', text: '· 今天' }) : null,
         ]),
         ui.el('div', { class: 'ci-required' }, [required]),
+        ui.el('div', { class: 'ci-minutes' }, [minutes]),
         ui.el('div', { class: 'ci-extra' }, [extra]),
-        ui.el('button', {
-          class: 'btn ' + (c.done ? 'btn-primary' : 'btn-ghost'),
-          text: c.done ? '已打卡' : '打卡',
-          onclick: () => {
-            Store.mutate('exercise', (m) => {
-              const cur = m.checkins[d] || { done: false, extra: '', content: '' };
-              m.checkins[d] = { done: !cur.done, extra: cur.extra || '', content: cur.content || '' };
-            });
-            this.refresh(this._container);
-          },
-        }),
+        checkinBtn,
       ]);
       card.appendChild(row);
     }
