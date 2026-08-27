@@ -2,6 +2,7 @@
 
 const { test, before, after } = require('node:test');
 const assert = require('node:assert');
+const Dates = require('../public/js/dates.js');
 const { tempDataDir, startServer, newPage, waitFor } = require('./helpers');
 
 let server, base, browser, page, dataDir;
@@ -102,4 +103,41 @@ test('再次打卡并刷新，计划与打卡数据仍在', async () => {
   assert.ok((await todayBtn.textContent()).includes('已打卡'));
   const stats = await page.textContent('.progress-text');
   assert.ok(stats.includes('1/2'), '刷新后统计: ' + stats);
+});
+
+test('打卡按钮位于每行最后', async () => {
+  const rows = await page.$$eval('.checkin-row', (ns) => ns.map((n) => {
+    const last = n.lastElementChild;
+    return last && last.classList.contains('btn') && /^(已)?打卡$/.test(last.textContent.trim());
+  }));
+  assert.strictEqual(rows.length, 7, '应有 7 行');
+  assert.ok(rows.every(Boolean), '每行最后一个元素都应是打卡按钮');
+});
+
+test('今天以轻量标识显示，不再占用独立标签', async () => {
+  const todayHasChip = await page.$('.checkin-row.today .chip');
+  assert.strictEqual(todayHasChip, null, '今天不应再使用独立标签');
+  const tag = await page.textContent('.checkin-row.today .ci-date .today-tag');
+  assert.ok(tag.includes('今天'), '今天应有轻量标识');
+  const otherHasTag = await page.$$eval('.checkin-row:not(.today) .today-tag', (ns) => ns.length);
+  assert.strictEqual(otherHasTag, 0, '其他天不应有今天标识');
+});
+
+test('补充每周计划后，本周打卡的需锻炼自动更新', async () => {
+  // 先给本周第一天（周一）设置新的计划内容
+  const rows = await page.$$('.week-row');
+  const mondayInput = await rows[0].$$('input');
+  await mondayInput[0].fill('拜日式');
+  await mondayInput[1].fill('25');
+  await page.click('.page-title'); // 失焦触发自动同步
+  const mondayDate = Dates.weekDays(Dates.todayStr())[0];
+  await waitFor(() => page.$eval('.checkin-row[data-date="' + mondayDate + '"] .ci-required input', (n) => n.value === '拜日式'));
+  // 有按日覆盖的今天不受周计划影响
+  const todayDate = Dates.todayStr();
+  await page.fill('.checkin-row.today .ci-required input', '自定内容');
+  await page.click('.page-title');
+  await page.locator('.week-row').first().locator('input[type="text"]').fill('其他计划');
+  await page.click('.page-title');
+  const todayVal = await page.$eval('.checkin-row[data-date="' + todayDate + '"] .ci-required input', (n) => n.value);
+  assert.strictEqual(todayVal, '自定内容', '按日覆盖不应被周计划覆盖');
 });

@@ -65,10 +65,11 @@ const ExerciseView = {
       const content = ui.el('input', { type: 'text', placeholder: '休息 / 练什么', value: p.content || '' });
       const minutes = ui.el('input', { type: 'number', min: '0', step: '5', placeholder: '分钟', value: p.minutes || '' });
       const save = () => this.savePlan(i, content.value, minutes.value);
+      const sync = () => { this.refreshStats(); this.syncCheckinPlan(); };
       content.addEventListener('input', save);
       minutes.addEventListener('input', save);
-      content.addEventListener('change', () => this.refreshStats());
-      minutes.addEventListener('change', () => this.refreshStats());
+      content.addEventListener('change', sync);
+      minutes.addEventListener('change', sync);
       card.appendChild(ui.el('div', { class: 'week-row' }, [
         ui.el('span', { class: 'wday', text: names[i - 1] }),
         content,
@@ -120,6 +121,22 @@ const ExerciseView = {
         this.refresh(this._container);
       },
     });
+  },
+
+  // 周计划变动后，把下方“需锻炼”中未按日覆盖的自动更新
+  syncCheckinPlan() {
+    const data = Store.state.data.exercise;
+    const weekDate = this.state.weekDate || Dates.todayStr();
+    const days = Dates.weekDays(weekDate);
+    const checkins = data.checkins || {};
+    const weekPlan = data.weekPlan || {};
+    for (const d of days) {
+      const c = checkins[d] || {};
+      if (c.content) continue; // 有按日覆盖的不动
+      const plan = weekPlan[String(Dates.weekdayIndex(d))] || {};
+      const input = this._container && this._container.querySelector('.checkin-row[data-date="' + d + '"] .ci-required input');
+      if (input) input.value = plan.content || '';
+    }
   },
 
   /* ---------- 本周打卡 ---------- */
@@ -174,12 +191,14 @@ const ExerciseView = {
           });
         },
       });
-      const row = ui.el('div', { class: 'checkin-row' + (isToday ? ' today' : '') }, [
+      const row = ui.el('div', { class: 'checkin-row' + (isToday ? ' today' : ''), 'data-date': d }, [
         ui.el('div', { class: 'ci-date' }, [
           d.slice(5),
           ui.el('span', { class: 'w', text: Dates.weekdayCN(d) }),
-          isToday ? ui.el('span', { class: 'chip done', text: '今天', style: 'margin-left:6px' }) : null,
+          isToday ? ui.el('span', { class: 'w today-tag', text: '· 今天' }) : null,
         ]),
+        ui.el('div', { class: 'ci-required' }, [required]),
+        ui.el('div', { class: 'ci-extra' }, [extra]),
         ui.el('button', {
           class: 'btn ' + (c.done ? 'btn-primary' : 'btn-ghost'),
           text: c.done ? '已打卡' : '打卡',
@@ -191,8 +210,6 @@ const ExerciseView = {
             this.refresh(this._container);
           },
         }),
-        ui.el('div', { class: 'ci-required' }, [required]),
-        ui.el('div', { class: 'ci-extra' }, [extra]),
       ]);
       card.appendChild(row);
     }
