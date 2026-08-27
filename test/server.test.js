@@ -89,7 +89,7 @@ test('GET /api/data 返回所有模块的默认结构', async () => {
   assert.deepStrictEqual(json.ai, { logs: [], prompts: [] });
   assert.deepStrictEqual(json.media, { ideas: [], posts: [] });
   assert.deepStrictEqual(json.exercise, { weekPlan: {}, checkins: {} });
-  assert.deepStrictEqual(json.diet, { days: {} });
+  assert.deepStrictEqual(json.diet, { defaults: [], days: {} });
   assert.deepStrictEqual(json.notes, { notes: [] });
   assert.ok(json.meta.schemaVersion >= 1);
 });
@@ -188,6 +188,7 @@ test('饮食旧版 meals 数据自动迁移为必吃清单', async () => {
   assert.strictEqual(res.status, 200);
   const diet = res.json.diet;
   assert.ok(diet.days, '应迁移为 days 结构');
+  assert.deepStrictEqual(diet.defaults, [], '应包含空的每日必吃列表');
   const items = diet.days['2026-08-24'].items || [];
   assert.strictEqual(items.length, 5, '中药/茶水/五红粉/111/111 共 5 项');
   assert.ok(items.some((i) => i.text === '中药'), '应包含中药');
@@ -197,6 +198,7 @@ test('饮食旧版 meals 数据自动迁移为必吃清单', async () => {
   // 落盘文件也应已是新结构
   const onDisk = JSON.parse(fs.readFileSync(oldFile, 'utf8'));
   assert.ok(onDisk.days, '文件应已迁移为 days 结构');
+  assert.ok(Array.isArray(onDisk.defaults), '文件应包含 defaults 列表');
 });
 
 test('恢复非法备份返回 400', async () => {

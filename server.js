@@ -49,17 +49,20 @@ function defaultModule(name) {
     case 'ai': return { logs: [], prompts: [] };
     case 'media': return { ideas: [], posts: [] };
     case 'exercise': return { weekPlan: {}, checkins: {} };
-    case 'diet': return { days: {} };
+    case 'diet': return { defaults: [], days: {} };
     case 'notes': return { notes: [] };
     case 'meta': return { schemaVersion: SCHEMA_VERSION, appVersion: APP_VERSION, createdAt: new Date().toISOString() };
     default: return {};
   }
 }
 
-// 饮食数据迁移：旧版 meals(早/午/晚) -> 新版 days(每日必吃清单)
+// 饮食数据迁移：旧版 meals(早/午/晚) -> 新版 days(每日执行清单) + defaults(每日必吃)
 function migrateDiet(payload) {
   if (!payload || typeof payload !== 'object') return payload;
-  if (payload.days && typeof payload.days === 'object') return payload;
+  if (payload.days && typeof payload.days === 'object') {
+    if (Array.isArray(payload.defaults)) return payload;
+    return { defaults: [], days: payload.days };
+  }
   if (payload.meals && typeof payload.meals === 'object') {
     const days = {};
     for (const [date, m] of Object.entries(payload.meals)) {
@@ -77,7 +80,7 @@ function migrateDiet(payload) {
       }
       if (items.length) days[date] = { items };
     }
-    return { days };
+    return { defaults: [], days };
   }
   return payload;
 }
