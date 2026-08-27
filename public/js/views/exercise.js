@@ -140,8 +140,10 @@ const ExerciseView = {
     ]);
     const card = ui.el('div', { class: 'card' }, [
       ui.el('div', { class: 'card-title' }, [
-        '本周打卡',
-        ui.el('small', { text: weekDate === today ? ('从 ' + Dates.weekStart(today) + ' 开始的一周') : ('正在查看 ' + Dates.weekStart(weekDate) + ' 开始的一周') }),
+        ui.el('div', { class: 'ct-left' }, [
+          ui.el('span', { class: 'ct-title', text: '本周打卡' }),
+          ui.el('small', { text: weekDate === today ? ('从 ' + Dates.weekStart(today) + ' 开始的一周') : ('正在查看 ' + Dates.weekStart(weekDate) + ' 开始的一周') }),
+        ]),
         titleRight,
       ]),
     ]);

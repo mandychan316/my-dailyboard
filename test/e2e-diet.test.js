@@ -99,6 +99,22 @@ test('本周执行卡片顶部对齐（周一不高于其他天）', async () =>
   assert.strictEqual(infos[0].top, infos[1].top, '周一与周二顶部应对齐');
 });
 
+test('「从…开始的一周」紧跟在「本周打卡」标题后并保留间距', async () => {
+  const info = await page.$eval('.card:has-text("本周打卡") .card-title', (n) => {
+    const left = n.querySelector('.ct-left');
+    const title = left ? left.querySelector('.ct-title') : null;
+    const small = left ? left.querySelector('small') : null;
+    return {
+      grouped: !!(left && title && small),
+      titleText: title ? title.textContent : '',
+      gap: title && small ? Math.round(small.getBoundingClientRect().left - title.getBoundingClientRect().right) : -1,
+    };
+  });
+  assert.ok(info.grouped, '标题与小字应在同一分组');
+  assert.strictEqual(info.titleText, '本周打卡');
+  assert.ok(info.gap >= 6 && info.gap <= 80, '小字应与标题保留适当间距: ' + info.gap);
+});
+
 test('本周执行没有复制/粘贴功能', async () => {
   const hasCopy = await page.$('.dw-card .dw-ops button:has-text("复制")');
   const hasPaste = await page.$('.dw-card .dw-ops button:has-text("粘贴")');
