@@ -15,7 +15,7 @@ before(async () => {
   page = b.page;
   await page.goto(base + '/#/ai');
   await page.click('.tab:has-text("提示词库")');
-  await waitFor(() => page.$('.chip.cat'));
+  await waitFor(() => page.$('#prompt-category-filter'));
 });
 
 after(async () => {
@@ -23,11 +23,14 @@ after(async () => {
   if (server) server.proc.kill();
 });
 
-test('分类名称字体为白色', async () => {
-  const color = await page.$eval('.chip.cat', (n) => getComputedStyle(n).color);
-  assert.strictEqual(color, 'rgb(255, 255, 255)', '分类字体应为白色: ' + color);
-  const bg = await page.$eval('.chip.cat', (n) => getComputedStyle(n).backgroundColor);
-  assert.notStrictEqual(bg, 'rgba(0, 0, 0, 0)', '分类应有底色');
+test('分类为下拉框，支持选择', async () => {
+  const sel = await page.$('#prompt-category-filter');
+  assert.ok(sel, '应有分类下拉框');
+  const opts = await page.$$eval('#prompt-category-filter option', (ns) => ns.map((n) => n.textContent.trim()));
+  assert.ok(opts.includes('全部分类'), '应有全部分类选项');
+  assert.ok(opts.includes('写作'), '应有写作分类');
+  const chips = await page.$$('.chip.cat');
+  assert.strictEqual(chips.length, 0, '不应再使用分类标签按钮');
 });
 
 test('新增模板弹窗：顺序为 分类/标题/适用场景/效果/提示词内容，对齐且适配', async () => {

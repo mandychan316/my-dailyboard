@@ -159,22 +159,18 @@ const AIView = {
     const prompts = this.filteredPrompts(data);
     const wrap = ui.el('div');
 
-    const cats = Array.from(new Set([...this.CATEGORIES, ...(data.prompts || []).map((p) => p.category).filter(Boolean)])).sort((a, b) => {
-      const ia = this.CATEGORIES.indexOf(a), ib = this.CATEGORIES.indexOf(b);
-      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-    });
-    const chips = ui.el('div', { class: 'filter-bar' });
-    const makeChip = (cat) =>
-      ui.el('button', {
-        class: 'chip cat' + (this.state.category === cat ? ' on' : ''),
-        text: cat,
-        onclick: () => { this.state.category = this.state.category === cat ? 'all' : cat; this.refresh(container); },
-      });
-    chips.appendChild(makeChip('全部'));
-    for (const c of cats) chips.appendChild(makeChip(c));
-    chips.appendChild(ui.el('div', { style: 'flex:1' }));
-    chips.appendChild(ui.el('button', { class: 'btn btn-primary', html: ui.icon('plus') + '新增模板', onclick: () => this.promptForm(container, null) }));
-    wrap.appendChild(chips);
+    const cats = Array.from(new Set([...this.CATEGORIES, ...(data.prompts || []).map((p) => p.category).filter(Boolean)]));
+    const categorySel = ui.el('select', { id: 'prompt-category-filter' }, [ui.el('option', { value: 'all', text: '全部分类' })].concat(
+      cats.map((c) => ui.el('option', { value: c, text: c }))
+    ));
+    categorySel.value = this.state.category;
+    categorySel.addEventListener('change', () => { this.state.category = categorySel.value; this.refresh(container); });
+    const bar = ui.el('div', { class: 'filter-bar' }, [
+      categorySel,
+      ui.el('div', { style: 'flex:1' }),
+      ui.el('button', { class: 'btn btn-primary', html: ui.icon('plus') + '新增模板', onclick: () => this.promptForm(container, null) }),
+    ]);
+    wrap.appendChild(bar);
 
     const list = ui.el('div');
     if (!prompts.length) {
@@ -194,25 +190,24 @@ const AIView = {
   },
 
   promptCard(data, p, container) {
-    const card = ui.el('div', { class: 'item-card' }, [
-      ui.el('div', { class: 'ic-top' }, [
-        ui.el('div', { style: 'flex:1;min-width:0' }, [
-          p.category ? ui.el('span', { class: 'chip', text: p.category }) : null,
-          ui.el('span', { class: 'ic-title', style: 'margin-left:8px', text: p.title }),
-        ]),
-        ui.el('div', { class: 'ic-actions' }, [
-          ui.el('button', { class: 'btn btn-sm', html: ui.icon('copy') + '复制', onclick: () => this.copyPrompt(p.content) }),
-          ui.el('button', { class: 'btn btn-ghost btn-sm', html: ui.icon('edit'), title: '编辑', onclick: () => this.promptForm(container, p) }),
-          ui.el('button', { class: 'btn btn-ghost btn-sm', html: ui.icon('trash'), title: '删除', onclick: () => this.deletePrompt(data, p, container) }),
-        ]),
+    // 第一层：分类 / 场景 / 效果
+    const meta = [];
+    if (p.category) meta.push(ui.el('span', { class: 'chip', text: p.category }));
+    if (p.scene) meta.push(ui.el('span', { class: 'chip plain', text: '场景：' + p.scene }));
+    if (p.effect) meta.push(ui.el('span', { class: 'chip plain', text: '效果：' + p.effect }));
+    const first = ui.el('div', { class: 'ic-top' }, [
+      ui.el('div', { class: 'ic-meta' }, meta),
+      ui.el('div', { class: 'ic-actions' }, [
+        ui.el('button', { class: 'btn btn-sm', html: ui.icon('copy') + '复制', onclick: () => this.copyPrompt(p.content) }),
+        ui.el('button', { class: 'btn btn-ghost btn-sm', html: ui.icon('edit'), title: '编辑', onclick: () => this.promptForm(container, p) }),
+        ui.el('button', { class: 'btn btn-ghost btn-sm', html: ui.icon('trash'), title: '删除', onclick: () => this.deletePrompt(data, p, container) }),
       ]),
-      ui.el('div', { class: 'ic-body', text: p.content }),
-      (p.scene || p.effect) ? ui.el('div', { class: 'ic-foot' }, [
-        p.scene ? ui.el('span', { class: 'chip plain', text: '适用：' + p.scene }) : null,
-        p.effect ? ui.el('span', { class: 'chip plain', text: '效果：' + p.effect }) : null,
-      ]) : null,
     ]);
-    return card;
+    // 第二层：标题
+    const second = ui.el('div', { class: 'ic-title', text: p.title });
+    // 第三层：提示词内容
+    const third = ui.el('div', { class: 'ic-body', text: p.content });
+    return ui.el('div', { class: 'item-card' }, [first, second, third]);
   },
 
   async copyPrompt(content) {

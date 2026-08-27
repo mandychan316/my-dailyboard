@@ -112,10 +112,12 @@ test('复制模板内容到剪贴板', async () => {
   assert.ok(clip.includes('整理成一份周报'));
 });
 
-test('按分类筛选模板', async () => {
-  await page.click('button:has-text("编程")');
+test('按分类筛选模板（下拉框）', async () => {
+  await page.selectOption('#prompt-category-filter', '编程');
   await waitFor(() => page.$eval('.empty', (n) => n.textContent.includes('还没有模板')));
-  await page.click('button:has-text("写作")');
+  await page.selectOption('#prompt-category-filter', '写作');
+  await waitFor(() => page.$$eval('.item-card', (ns) => ns.length === 1));
+  await page.selectOption('#prompt-category-filter', 'all');
   await waitFor(() => page.$$eval('.item-card', (ns) => ns.length === 1));
 });
 
