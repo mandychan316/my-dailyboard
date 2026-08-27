@@ -115,13 +115,11 @@ const AIView = {
     const datalist = ui.el('datalist', { id: 'tool-list' }, this.TOOL_SUGGESTIONS.map((t) => ui.el('option', { value: t })));
     const box = ui.el('div', { class: 'modal form-modal' }, [
       ui.el('div', { class: 'modal-title', text: log ? '编辑日志' : '记录一次 AI 使用' }),
-      ui.el('div', { class: 'field-row' }, [
-        ui.el('label', { class: 'field' }, [ui.el('span', { text: '日期' }), date]),
-        ui.el('label', { class: 'field' }, [ui.el('span', { text: '用途' }), purpose]),
-      ]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '用的什么工具' }), tool, datalist]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '做了什么' }), content]),
-      ui.el('label', { class: 'field' }, [ui.el('span', { text: '结果与心得' }), reflection]),
+      ui.formRow('日期', date),
+      ui.formRow('用途', purpose),
+      ui.formRow('工具', [tool, datalist]),
+      ui.formRow('做了什么', content),
+      ui.formRow('结果与心得', reflection),
       ui.el('div', { class: 'modal-actions' }, [
         ui.el('button', { class: 'btn', text: '取消', onclick: () => overlay.remove() }),
         ui.el('button', {

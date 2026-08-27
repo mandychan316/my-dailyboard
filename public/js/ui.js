@@ -66,6 +66,13 @@ function toast(msg, type) {
   }, 1600);
 }
 
+function formRow(label, ctls) {
+  return el('div', { class: 'form-row' }, [
+    el('span', { class: 'fr-label', text: label }),
+    el('div', { class: 'fr-ctl' }, [].concat(ctls)),
+  ]);
+}
+
 function confirmDialog(title, message, opts) {
   const o = Object.assign({ confirmText: '删除', cancelText: '取消', danger: true }, opts || {});
   return new Promise((resolve) => {
@@ -93,6 +100,6 @@ function confirmDialog(title, message, opts) {
   });
 }
 
-const ui = { escapeHtml, el, icon, toast, confirmDialog };
+const ui = { escapeHtml, el, icon, toast, confirmDialog, formRow };
 
 if (typeof window !== 'undefined') window.ui = ui;
