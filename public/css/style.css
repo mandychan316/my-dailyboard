@@ -519,28 +519,36 @@ html[data-theme="mint"] {
 
 /* ============ 主题：深夜墨蓝 ============ */
 html[data-theme="dark"] {
-  --bg: #1B2430; --bg-deep: #141B25; --card: #222D3B;
-  --ink: #E6EBF2; --ink-soft: #A6B2C2; --ink-faint: #7C8A9C;
-  --primary: #7FB4E6; --primary-deep: #5E9AD9; --primary-soft: #2A3A50;
-  --accent: #E6C36A; --accent-soft: #453F2A;
-  --sand: #33404F; --sand-soft: #2A3645; --line: #33404F;
-  --danger: #E8837B; --danger-soft: #3A2C2E; --danger-line: #5A3A34;
-  --ok: #6FBF8F; --ok-soft: #233A2E;
+  --bg: #1B2430; --bg-deep: #141B25; --card: #232E3D;
+  --ink: #ECF1F7; --ink-soft: #B9C5D4; --ink-faint: #96A5B8;
+  --primary: #8DBBE9; --primary-deep: #6EA6DD; --primary-soft: #2E4158;
+  --accent: #EDCF82; --accent-soft: #4A4430;
+  --sand: #3B4A5B; --sand-soft: #2F3D4E; --line: #3B4A5B;
+  --danger: #EE928A; --danger-soft: #412F32; --danger-line: #66423E;
+  --ok: #7FCAA0; --ok-soft: #284336;
   --on-primary: #0F1620; --on-ink: #1B2430;
-  --field-bg: #141B25;
-  --hover-bg: rgba(127, 180, 230, .12);
-  --focus-ring: rgba(127, 180, 230, .25);
-  --overlay: rgba(0, 0, 0, .55);
+  --field-bg: #182330;
+  --hover-bg: rgba(141, 187, 233, .14);
+  --focus-ring: rgba(141, 187, 233, .28);
+  --overlay: rgba(0, 0, 0, .58);
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.35);
   --shadow-sm: 0 8px 22px rgba(0,0,0,.35);
   --shadow-md: 0 8px 24px rgba(0,0,0,.45);
   --shadow-lg: 0 18px 50px rgba(0,0,0,.5);
-  --st-idea-bg: #2A3645; --st-idea-text: #A6B2C2;
-  --st-writing-bg: #2A3A50; --st-writing-text: #8FB6E8;
-  --st-ready-bg: #453F2A; --st-ready-text: #E6C36A;
-  --st-published-bg: #233A2E; --st-published-text: #6FBF8F;
-  --pri-high-bg: #453F2A; --pri-high-text: #E6C36A;
+  --st-idea-bg: #2F3D4E; --st-idea-text: #C3CFDC;
+  --st-writing-bg: #2E4158; --st-writing-text: #A5C8F0;
+  --st-ready-bg: #4A4430; --st-ready-text: #F0D894;
+  --st-published-bg: #284336; --st-published-text: #8BD6AC;
+  --pri-high-bg: #4A4430; --pri-high-text: #F0D894;
 }
+
+/* 深夜墨蓝：首页横幅融入暗色 */
+html[data-theme="dark"] .home-hero {
+  background: linear-gradient(135deg, #2E3D51 0%, #1B2430 100%);
+  color: #ECF1F7;
+}
+html[data-theme="dark"] .home-hero .greet { color: #A9B7C8; }
+html[data-theme="dark"] .path-box { background: #182330; }
 
 /* ============ 主题：编辑部黑白 ============ */
 html[data-theme="editorial"] {

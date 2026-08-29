@@ -57,6 +57,14 @@ test('切换风格立即生效并保存，刷新后保留', async () => {
   await waitFor(() => page.evaluate(() => document.documentElement.getAttribute('data-theme') === 'dark'));
   bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   assert.strictEqual(bg, 'rgb(27, 36, 48)', '深夜墨蓝底色');
+  // 深色模式下次要文字对比度足够（亮度较高）
+  const vars = await page.evaluate(() => {
+    const cs = getComputedStyle(document.documentElement);
+    return { inkSoft: cs.getPropertyValue('--ink-soft').trim(), inkFaint: cs.getPropertyValue('--ink-faint').trim(), line: cs.getPropertyValue('--line').trim() };
+  });
+  assert.strictEqual(vars.inkSoft, '#B9C5D4', 'ink-soft 应调亮');
+  assert.strictEqual(vars.inkFaint, '#96A5B8', 'ink-faint 应调亮');
+  assert.strictEqual(vars.line, '#3B4A5B', '分隔线应调亮一档');
 
   // 回到暖色手账
   await page.click('.theme-opt[data-theme="warm"]');
