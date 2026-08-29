@@ -65,6 +65,9 @@ test('切换风格立即生效并保存，刷新后保留', async () => {
   assert.strictEqual(vars.inkSoft, '#B9C5D4', 'ink-soft 应调亮');
   assert.strictEqual(vars.inkFaint, '#96A5B8', 'ink-faint 应调亮');
   assert.strictEqual(vars.line, '#3B4A5B', '分隔线应调亮一档');
+  // 风格选项名称在深色模式下应为浅色文字（非黑色）
+  const themeNameColor = await page.evaluate(() => getComputedStyle(document.querySelector('.theme-opt .t-name')).color);
+  assert.strictEqual(themeNameColor, 'rgb(236, 241, 247)', '风格名称应为浅色文字: ' + themeNameColor);
 
   // 回到暖色手账
   await page.click('.theme-opt[data-theme="warm"]');

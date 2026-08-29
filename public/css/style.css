@@ -603,7 +603,7 @@ html[data-theme="cream"] {
 /* ============ 设置：风格选择 ============ */
 .theme-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
 .theme-opt {
-  border: 1px solid var(--line); background: var(--card);
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
   border-radius: var(--radius-sm); padding: 10px 12px; text-align: left;
   transition: border-color .12s, background .12s;
 }
