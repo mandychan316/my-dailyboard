@@ -16,16 +16,14 @@ before(async () => {
   if (past === today) past = today.slice(0, 7) + '-02';
   otherWeek = Dates.addDays(today, -7);
 
-  const weekPlan = {};
-  weekPlan[String(Dates.weekdayIndex(past))] = { content: '肩颈拉伸', minutes: 20 };
-  weekPlan[String(Dates.weekdayIndex(today))] = { content: '流瑜伽', minutes: 45 };
+  // 用按日期的内容播种，避免“本周与历史日同星期”时相互覆盖
   await fetch(base + '/api/data/exercise', {
     method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      weekPlan,
+      weekPlan: {},
       checkins: {
-        [today]: { done: true, extra: '加练 10 分钟' },
-        [past]: { done: true, extra: '' },
+        [today]: { done: true, extra: '加练 10 分钟', content: '流瑜伽', minutes: 45 },
+        [past]: { done: true, extra: '', content: '肩颈拉伸', minutes: 20 },
         [otherWeek]: { done: true, extra: '' },
       },
     }),
