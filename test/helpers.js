@@ -7,9 +7,11 @@ const os = require('node:os');
 const path = require('node:path');
 
 const SERVER = path.join(__dirname, '..', 'server.js');
+// 本机路径支持环境变量覆盖，方便换电脑/换环境：PLAYWRIGHT_PATH、CHROME_PATH
 const PLAYWRIGHT_PATH = process.env.PLAYWRIGHT_PATH ||
   '/Users/mandychan/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright';
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = process.env.CHROME_PATH ||
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 function tempDataDir(prefix) {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix || 'wl-e2e-'));
