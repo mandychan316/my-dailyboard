@@ -16,7 +16,7 @@ const HomeView = {
     return ui.el('div', { class: 'home-hero' }, [
       ui.el('div', {}, [
         ui.el('div', { class: 'date-big', text: Dates.formatCN(today) }),
-        ui.el('div', { class: 'greet', text: Dates.greetingCN() + '，用户' }),
+        ui.el('div', { class: 'greet', text: Dates.greetingCN() + '，今天也慢慢来' }),
       ]),
     ]);
   },
