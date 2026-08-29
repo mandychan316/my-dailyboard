@@ -19,7 +19,7 @@ const APP_NAME = 'worklife-app';
 const SCHEMA_VERSION = 1;
 const APP_VERSION = '1.0.0';
 
-const MODULES = ['today', 'ai', 'media', 'exercise', 'diet', 'notes', 'meta'];
+const MODULES = ['today', 'ai', 'media', 'exercise', 'diet', 'notes', 'meta', 'preferences'];
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -52,6 +52,7 @@ function defaultModule(name) {
     case 'diet': return { defaults: [], days: {} };
     case 'notes': return { notes: [] };
     case 'meta': return { schemaVersion: SCHEMA_VERSION, appVersion: APP_VERSION, createdAt: new Date().toISOString() };
+    case 'preferences': return { theme: 'warm' };
     default: return {};
   }
 }

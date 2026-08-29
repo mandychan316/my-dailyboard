@@ -18,9 +18,15 @@
     settings: SettingsView,
   };
 
+  function applyTheme() {
+    const theme = (Store.state.data.preferences && Store.state.data.preferences.theme) || 'warm';
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+
   async function init() {
     try {
       await Store.loadAll();
+      applyTheme();
     } catch (e) {
       console.error(e);
       document.getElementById('main').innerHTML = '<div class="page"><div class="card"><div class="empty">无法连接本地数据服务，请重新双击启动器。</div></div></div>';

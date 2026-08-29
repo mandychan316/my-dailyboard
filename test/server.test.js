@@ -73,7 +73,7 @@ test('健康检查返回正常', async () => {
 });
 
 test('首次启动会在数据目录生成全部独立文件', () => {
-  const modules = ['today', 'ai', 'media', 'exercise', 'diet', 'notes', 'meta'];
+  const modules = ['today', 'ai', 'media', 'exercise', 'diet', 'notes', 'meta', 'preferences'];
   for (const m of modules) {
     const file = path.join(dataDir, m + '.json');
     assert.ok(fs.existsSync(file), '缺少文件 ' + m + '.json');
@@ -91,6 +91,7 @@ test('GET /api/data 返回所有模块的默认结构', async () => {
   assert.deepStrictEqual(json.exercise, { weekPlan: {}, checkins: {} });
   assert.deepStrictEqual(json.diet, { defaults: [], days: {} });
   assert.deepStrictEqual(json.notes, { notes: [] });
+  assert.deepStrictEqual(json.preferences, { theme: 'warm' });
   assert.ok(json.meta.schemaVersion >= 1);
 });
 
